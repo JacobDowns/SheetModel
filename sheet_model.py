@@ -1,8 +1,9 @@
 from dolfin import *
 from dolfin_adjoint import *
 from constants import *
-#from h_solver import *
 from phi_solver import *
+#from h_solver import *
+#from phi_solver import *
 
 """ Wrapper class Schoof's constrained sheet model."""
 
@@ -57,12 +58,26 @@ class SheetModel():
       self.pcs = self.model_inputs['constants']
     else :
       self.pcs = pcs
-    
+      
+    # If the Newton parameters are specified use them. Otherwise use some
+    # defaults
+    if 'newton_params' in self.model_inputs:
+      self.newton_params = self.model_inputs['newton_params']
+    else :
+      prm = NonlinearVariationalSolver.default_parameters()
+      prm['newton_solver']['relaxation_parameter'] = 1.0
+      prm['newton_solver']['relative_tolerance'] = 3e-6
+      prm['newton_solver']['absolute_tolerance'] = 3e-6
+      prm['newton_solver']['error_on_nonconvergence'] = False
+      prm['newton_solver']['maximum_iterations'] = 50
+      prm['newton_solver']['linear_solver'] = 'mumps'
+      
+      self.newton_params = prm
 
     ### Set up a few more things we'll need
 
     # Potential
-    self.phi = Function(self.V_cg, name = "phi")
+    self.phi = Function(self.V_cg)
     # Effective pressure
     self.N = Function(self.V_cg)
     # Water pressure
@@ -75,7 +90,6 @@ class SheetModel():
     
     ### Output files
     
-    # Facet function for writing cr functions to pvd files
     self.h_out = File(self.out_dir + "h.pvd")
     self.phi_out = File(self.out_dir + "phi.pvd")
     self.pfo_out = File(self.out_dir + "pfo.pvd")
@@ -83,18 +97,13 @@ class SheetModel():
 
     ### Create the solver objects
 
-    # Potential solver    
     self.phi_solver = PhiSolver(self)
-    # h solver
-    #self.h_solver = HSolver(self)
+    
     
 
   # Steps phi, h, and S forwardt by dt
   def step(self, dt):
-    # Step the potential forward with h fixed
     self.phi_solver.step()
-    # Step h forward with phi fixed
-    #self.h_solver.step(dt)
     
     
   # Load all model inputs from a directory except for the mesh and initial 
@@ -160,7 +169,7 @@ class SheetModel():
   
   # Updates all fields derived from phi
   def update_phi(self):
-    self.phi_prev.assign(self.phi)
+    #self.phi_prev.assign(self.phi)
     self.update_pfo()
     
   

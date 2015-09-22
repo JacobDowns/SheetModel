@@ -42,12 +42,12 @@ model_inputs['mesh'] = mesh
 model_inputs['h_init'] = h_init
 model_inputs['phi_init'] = phi_init
 model_inputs['d_bcs'] = [bc]
-model_inputs['maps_dir'] = in_dir + "maps/"
 model_inputs['out_dir'] = out_dir
 
 
 # Create the Glads model
 model = SheetModel(model_inputs, in_dir)
+
 
 model.step(5.0)
 quit()
