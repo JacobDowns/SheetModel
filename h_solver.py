@@ -1,7 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
 from scipy.integrate import ode
-import numpy as np
 
 """Solves ODE for the sheet height h with phi fixed."""
 
@@ -34,7 +33,7 @@ class HSolver():
     ### Set up the sheet height ODE
       
     # Right hand side for the gap height ODE
-    def rhs(t, Y):
+    def rhs(t, h_n):
       # Ensure that the sheet height is positive
       h_n[h_n < 0.0] = 0.0
       # Sheet opening term
@@ -48,7 +47,7 @@ class HSolver():
       return dhdt
     
     # Set up ODE solver
-    ode_solver = ode(rhs).set_integrator('vode', method = 'adams', max_step = 60.0 * 5.0)
+    ode_solver = ode(rhs).set_integrator('vode',  method='bdf', order = 15, nsteps = 3000, max_step = 60.0 * 5.0)
     ode_solver.set_initial_value(h0, t0)
 
 

@@ -5,7 +5,7 @@ from constants import *
 from dolfin import MPI, mpi_comm_world
 
 # Model input directory
-in_dir = "inputs_slope/"
+in_dir = "inputs_ref/"
 # Output directory
 out_dir = "out/"
 # Process number
@@ -22,10 +22,6 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 h_init = Function(V_cg)
 h_init.interpolate(Constant(0.05))
 
-# Initial potential
-phi_init = Function(V_cg)
-File(in_dir + "phi_0.xml") >> phi_init
-
 # Load the boundary facet function
 boundaries = FacetFunction('size_t', mesh)
 File(in_dir + "boundaries.xml") >> boundaries
@@ -40,17 +36,12 @@ bc = DirichletBC(V_cg, phi_m, boundaries, 1)
 model_inputs = {}
 model_inputs['mesh'] = mesh
 model_inputs['h_init'] = h_init
-model_inputs['phi_init'] = phi_init
 model_inputs['d_bcs'] = [bc]
 model_inputs['out_dir'] = out_dir
 
-
-# Create the Glads model
+# Create the sheet model
 model = SheetModel(model_inputs, in_dir)
 
-
-model.step(5.0)
-quit()
 
 ### Run the simulation
 
@@ -70,7 +61,9 @@ while model.t < T:
   
   model.step(dt)
   
-  if i % 24 == 0:
+  #plot(model.h, interactive = True)
+  
+  if i % 1 == 0:
     model.write_pvds()
   
   if MPI_rank == 0: 

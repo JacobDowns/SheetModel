@@ -1,7 +1,7 @@
 from dolfin import *
 from dolfin_adjoint import *
 
-parameters['form_compiler']['precision'] = 30
+#parameters['form_compiler']['precision'] = 30
 
 """ Solves phi with h fixed."""
 
@@ -39,43 +39,37 @@ class PhiSolver(object):
     beta = model.pcs['beta']
     delta = model.pcs['delta']
     # Regularization parameter
-    phi_reg = Constant(1e-16)
+    phi_reg = 1e-16
     
 
-    ### Set up the PDE for the potential 
-
-    # Unknown 
-    u = Function(model.V_cg)
-    u.assign(phi_m)
-    self.u = u
+    ### Set up the PDE
+    
     # Expression for effective pressure in terms of potential
-    Nu = phi_0 - u
+    N = phi_0 - phi
     # Flux vector
-    qu = -Constant(k) * h**alpha * (dot(grad(u), grad(u)) + phi_reg)**(delta / 2.0) * grad(u)
+    q = -Constant(k) * h**alpha * (dot(grad(phi), grad(phi)) + phi_reg)**(delta / 2.0) * grad(phi)
     # Opening term 
-    #wu = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
-    wu = u_b * (h_r - h) / Constant(l_r)    
+    w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
     # Closing term
-    vu = Constant(A) * h * Nu**3
+    v = Constant(A) * h * N**3
     
+    """
     # Function for storing the variation of the objective function 
     # Test function
     theta = TestFunction(model.V_cg)
     # Variational form for the PDE
-    self.F = -dot(grad(theta), qu) * dx + (wu - vu - m) * theta * dx
+    self.F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
     # Get the Jacobian
-    du = TrialFunction(model.V_cg)
-    self.J = derivative(self.F, u, du) 
+    dphi = TrialFunction(model.V_cg)
+    self.J = derivative(self.F, phi, dphi) """
 
-  
-    ### Set up the variational principle
-    
+
+    ### Solve the PDE once to create a record for dolfin-adjoint    
     phi.assign(phi_0)
-    # Expression for effective pressure
-    N = phi_0 - phi
-    # Opening term 
-    #w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
-    w = u_b * (h_r - h) / Constant(l_r)
+    #self.solve_pde()
+    
+    
+    ### Set up the variational principle
 
     # Define some upper and lower bounds for phi
     self.phi_min = Function(model.V_cg)
@@ -96,31 +90,34 @@ class PhiSolver(object):
     self.J_hat = Functional(J_phi * dt[FINISH_TIME])
     self.rf = ReducedFunctional(self.J_hat, Control(phi, value = phi))
   
-
+  """
   # Solve the PDE for the potential
   def solve_pde(self):
     # Solve for potential
-    solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
+    solve(self.F == 0, self.model.phi, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)
+    # Derive values form the potential
+    self.model.update_phi()"""
+    
 
 
-  # Steps the potential forward with h fixed
+  # Steps the potential forward
   def step(self):
-    # Solve the PDE
-    self.u.assign(self.model.phi_m)
-    self.solve_pde()
-    # Copy the solution u to phi
-    self.model.phi.assign(self.u)      
+    # Solve the pde
+    #self.solve_pde()
     
     # If pressure is in the correct range then we're done. Otherwise we'll 
     # alter phi so it's in the correct range then use it as a starting guess
-    # for minimizing the variational principle
-    """over_or_under = self.phi_apply_bounds()
+    # for the variational principle
+    #over_or_under = self.phi_apply_bounds()
     
-    if over_or_under:
-      minimize(self.rf, method = "L-BFGS-B", tol = 9e-6, bounds = (self.phi_min, self.phi_max), options = {"disp": True})"""
+    #if over_or_under:
+    minimize(self.rf, method = "L-BFGS-B", tol = 2e-08, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
     
+    quit()
     # Derive values from potential
-    self.model.update_phi()
+    self.update_phi()
+    
+    plot(model.phi, interactive = True)
       
   
   # Correct the potential so that it is above 0 pressure and below overburden.

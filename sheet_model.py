@@ -2,8 +2,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from constants import *
 from phi_solver import *
-#from h_solver import *
-#from phi_solver import *
+from h_solver import *
 
 """ Wrapper class Schoof's constrained sheet model."""
 
@@ -32,8 +31,6 @@ class SheetModel():
     self.m = self.model_inputs['m']
     # Cavity gap height
     self.h = self.model_inputs['h_init']
-    # Initial potential
-    self.phi_init = self.model_inputs['phi_init']
     # Potential at 0 pressure
     self.phi_m = self.model_inputs['phi_m']
     # Ice overburden pressure
@@ -46,11 +43,6 @@ class SheetModel():
     self.boundaries = self.model_inputs['boundaries']
     # Output directory
     self.out_dir = self.model_inputs['out_dir']
-    
-    # Neumann (flux) boundary conditions
-    self.n_bcs = []
-    if 'n_bcs' in self.model_inputs:
-      self.n_bcs = model_inputs['n_bcs']
     
     # If there is a dictionary of physical constants specified, use it. 
     # Otherwise use the defaults. 
@@ -65,14 +57,15 @@ class SheetModel():
       self.newton_params = self.model_inputs['newton_params']
     else :
       prm = NonlinearVariationalSolver.default_parameters()
-      prm['newton_solver']['relaxation_parameter'] = 1.0
+      prm['newton_solver']['relaxation_parameter'] = 1.
       prm['newton_solver']['relative_tolerance'] = 3e-6
-      prm['newton_solver']['absolute_tolerance'] = 3e-6
+      prm['newton_solver']['absolute_tolerance'] = 1e-3
       prm['newton_solver']['error_on_nonconvergence'] = False
-      prm['newton_solver']['maximum_iterations'] = 50
-      prm['newton_solver']['linear_solver'] = 'mumps'
+      prm['newton_solver']['maximum_iterations'] = 25
+      #prm['newton_solver']['linear_solver'] = 'mumps'
       
       self.newton_params = prm
+
 
     ### Set up a few more things we'll need
 
@@ -96,14 +89,17 @@ class SheetModel():
 
 
     ### Create the solver objects
-
+    
+    # Potential solver
     self.phi_solver = PhiSolver(self)
+    # Sheet height solver
+    self.h_solver = HSolver(self)
     
     
-
   # Steps phi, h, and S forwardt by dt
   def step(self, dt):
     self.phi_solver.step()
+    self.h_solver.step(dt)
     
     
   # Load all model inputs from a directory except for the mesh and initial 
@@ -169,7 +165,7 @@ class SheetModel():
   
   # Updates all fields derived from phi
   def update_phi(self):
-    #self.phi_prev.assign(self.phi)
+    self.update_N()
     self.update_pfo()
     
   
