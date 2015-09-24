@@ -12,8 +12,23 @@ out_dir = "inputs_ref/"
 mesh = Mesh(out_dir + "mesh.xml")
 V_cg = FunctionSpace(mesh, "CG", 1)
 
+# Maximum ice thickness
+h_max = 1500.
+# Length of ice sheet 
+length = 50e3
+# Center of trough 
+center = 10e3
+# Maximum trough depth
+depth = 200.0
+
 # Melt
-m = project(Expression("(1.0 + 1.5 * (50000.0 - x[0]) / 50000.0) / 31536000.0"), V_cg)
+#m = project(Expression("(1.0 + 1.5 * (50000.0 - x[0]) / 50000.0) / 31536000.0"), V_cg)
+class Melt(Expression):
+  def eval(self,value,x):
+    value[0] = max(1.0 - x[0] / (0.7 * length), 0.0)
+
+m = project(Melt(), V_cg)
+plot(m, interactive = True)   
 File(out_dir + "m.xml") << m
 File(out_dir + "m.pvd") << m
 
@@ -24,14 +39,7 @@ File(out_dir + "u_b.pvd") << u_b
 
 # Bed and surface
 
-# Maximum ice thickness
-h_max = 1500.
-# Length of ice sheet 
-length = 50e3
-# Center of trough 
-center = 10e3
-# Maximum trough depth
-depth = 200.0
+
       
 class Bed(Expression):
   def eval(self,value,x):
