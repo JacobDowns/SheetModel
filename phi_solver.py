@@ -53,8 +53,8 @@ class PhiSolver(object):
     # Flux vector
     qu = -Constant(k) * h**alpha * (dot(grad(u), grad(u)) + phi_reg)**(delta / 2.0) * grad(u)
     # Opening term 
-    #wu = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
-    wu = u_b * (h_r - h) / Constant(l_r)    
+    wu = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
+    #wu = u_b * (h_r - h) / Constant(l_r)    
     # Closing term
     vu = Constant(A) * h * Nu**3
     
@@ -74,8 +74,8 @@ class PhiSolver(object):
     # Expression for effective pressure
     N = phi_0 - phi
     # Opening term 
-    #w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
-    w = u_b * (h_r - h) / Constant(l_r)
+    w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
+    #w = u_b * (h_r - h) / Constant(l_r)
 
     # Define some upper and lower bounds for phi
     self.phi_min = Function(model.V_cg)
@@ -108,16 +108,17 @@ class PhiSolver(object):
     # Solve the PDE
     self.u.assign(self.model.phi_m)
     self.solve_pde()
+
     # Copy the solution u to phi
     self.model.phi.assign(self.u)      
     
     # If pressure is in the correct range then we're done. Otherwise we'll 
     # alter phi so it's in the correct range then use it as a starting guess
     # for minimizing the variational principle
-    """over_or_under = self.phi_apply_bounds()
+    over_or_under = self.phi_apply_bounds()
     
-    if over_or_under:
-      minimize(self.rf, method = "L-BFGS-B", tol = 9e-6, bounds = (self.phi_min, self.phi_max), options = {"disp": True})"""
+    #if over_or_under:
+    minimize(self.rf, method = "L-BFGS-B", tol = 1e-7, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
     
     # Derive values from potential
     self.model.update_phi()
@@ -126,6 +127,7 @@ class PhiSolver(object):
   # Correct the potential so that it is above 0 pressure and below overburden.
   # Return True if underpressure was present?
   def phi_apply_bounds(self):
+    
     # Array of values for phi
     phi_vals = self.model.phi.vector().array()
     # Array of minimum values
@@ -138,16 +140,15 @@ class PhiSolver(object):
     # Indexes that are underpressure
     indexes_under = phi_vals < phi_min_vals    
     
-    if indexes_over.any() or indexes_under.any():
-      # Correct under or overpressure values
-      phi_vals[indexes_over] = phi_max_vals[indexes_over]
-      phi_vals[indexes_under] = phi_min_vals[indexes_under]
+    phi_vals[indexes_over] = phi_max_vals[indexes_over]
+    phi_vals[indexes_under] = phi_min_vals[indexes_under]
   
-      # Update phi    
-      self.model.phi.vector().set_local(phi_vals)
-      self.model.phi.vector().apply("insert")
-      
-      # If there were over or underpressure values return true
+    # Update phi    
+    self.model.phi.vector().set_local(phi_vals)
+    self.model.phi.vector().apply("insert")
+    
+    # If there were over or underpressure values return true
+    if indexes_over.any() or indexes_under.any():
       return True
     
     # If pressure was in the correct range return false

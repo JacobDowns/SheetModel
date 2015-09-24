@@ -86,6 +86,11 @@ class SheetModel():
     self.h_out = File(self.out_dir + "h.pvd")
     self.phi_out = File(self.out_dir + "phi.pvd")
     self.pfo_out = File(self.out_dir + "pfo.pvd")
+    self.u_out = File(self.out_dir + "u.pvd")
+    # An index for labeling checkpoint files
+    self.check_index = 0
+    # Directory to write checkpoint files
+    self.check_dir = self.out_dir + "checkpoint/"
 
 
     ### Create the solver objects
@@ -174,5 +179,15 @@ class SheetModel():
     self.h_out << self.h
     self.phi_out << self.phi
     self.pfo_out << self.pfo
+    self.u_out << self.phi_solver.u
+
+
+  # Write out xml checkpoint flies for h and phi
+  def write_xmls(self):
+    File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
+    File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
+    File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
+    # Increment the checkpoint index
+    self.check_index += 1
   
     
