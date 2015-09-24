@@ -25,7 +25,7 @@ depth = 200.0
 #m = project(Expression("(1.0 + 1.5 * (50000.0 - x[0]) / 50000.0) / 31536000.0"), V_cg)
 class Melt(Expression):
   def eval(self,value,x):
-    value[0] = max(1.0 - x[0] / (0.7 * length), 0.0)
+    value[0] = max(1.0 - x[0] / (0.66 * length), 0.0) / 31536000.0
 
 m = project(Melt(), V_cg)
 plot(m, interactive = True)   

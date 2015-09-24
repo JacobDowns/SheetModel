@@ -37,8 +37,8 @@ File(in_dir + "phi_m.xml") >> phi_m
 bc = DirichletBC(V_cg, phi_m, boundaries, 1)
 
 prm = NonlinearVariationalSolver.default_parameters()
-prm['newton_solver']['relaxation_parameter'] = 0.95
-prm['newton_solver']['relative_tolerance'] = 2e-3
+prm['newton_solver']['relaxation_parameter'] = 1.0
+prm['newton_solver']['relative_tolerance'] = 1e-7
 prm['newton_solver']['absolute_tolerance'] = 1e-3
 prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 25
@@ -72,6 +72,8 @@ while model.t < T:
     print "Current Time: " + str(current_time)
   
   model.step(dt)
+  
+  plot(model.pfo, interactive = True)
   
   if i % 1 == 0:
     model.write_pvds()
