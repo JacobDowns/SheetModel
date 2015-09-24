@@ -47,7 +47,7 @@ class Bed(Expression):
 
 class Surface(Expression):
   def eval(self,value,x):
-    value[0] = sqrt((x[0] + 50.0) * h_max**2 / length)
+    value[0] = sqrt((x[0] + 10.0) * h_max**2 / length)
 
 # Surface
 S = project(Surface(), V_cg)
