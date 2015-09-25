@@ -39,7 +39,7 @@ class PhiSolver(object):
     beta = model.pcs['beta']
     delta = model.pcs['delta']
     # Regularization parameter
-    phi_reg = Constant(1e-16)
+    phi_reg = 1e-15
     
 
     ### Set up the PDE for the potential 
@@ -101,6 +101,15 @@ class PhiSolver(object):
   def solve_pde(self):
     # Solve for potential
     solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
+  
+  
+  # Solve the optimization problem for the potential
+  def solve_opt(self, tol):
+    # Correct potential so it's in the correct range. This gives us an initial 
+    # guess for the optimization 
+    self.phi_apply_bounds()
+    # Solve the optimization problem
+    minimize(self.rf, method = "L-BFGS-B", tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
 
 
   # Steps the potential forward with h fixed
@@ -112,13 +121,8 @@ class PhiSolver(object):
     # Copy the solution u to phi
     self.model.phi.assign(self.u)      
     
-    # If pressure is in the correct range then we're done. Otherwise we'll 
-    # alter phi so it's in the correct range then use it as a starting guess
-    # for minimizing the variational principle
-    over_or_under = self.phi_apply_bounds()
-    
-    #if over_or_under:
-    minimize(self.rf, method = "L-BFGS-B", tol = 1e-7, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
+    # Solve the optimization problem 
+    self.solve_opt(9e-9)
     
     # Derive values from potential
     self.model.update_phi()
