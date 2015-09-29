@@ -54,7 +54,6 @@ class PhiSolver(object):
     qu = -Constant(k) * h**alpha * (dot(grad(u), grad(u)) + phi_reg)**(delta / 2.0) * grad(u)
     # Opening term 
     wu = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
-    #wu = u_b * (h_r - h) / Constant(l_r)    
     # Closing term
     vu = Constant(A) * h * Nu**3
     
@@ -75,7 +74,6 @@ class PhiSolver(object):
     N = phi_0 - phi
     # Opening term 
     w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
-    #w = u_b * (h_r - h) / Constant(l_r)
 
     # Define some upper and lower bounds for phi
     self.phi_min = Function(model.V_cg)
@@ -97,35 +95,43 @@ class PhiSolver(object):
     self.rf = ReducedFunctional(self.J_hat, Control(phi, value = phi))
   
 
-  # Solve the PDE for the potential
-  def solve_pde(self):
+  # Internal function that solves the PDE for u
+  def __solve_pde__(self):
     # Solve for potential
     solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
-  
-  
-  # Solve the optimization problem for the potential
+
+    
+  # External function that solves PDE for u then copies it to model.phi
+  def solve_pde(self):
+    self.__solve_pde__()
+    # Copy PDE solution u to model phi
+    self.model.phi.assign(self.u)    
+    # Update phi
+    self.model.update_phi()
+
+
+  # Function that solves optimization problem for phi 
   def solve_opt(self, tol):
-    # Correct potential so it's in the correct range. This gives us an initial 
-    # guess for the optimization 
+    # Make sure that the potential is in the correct range so it's a good initial
+    # guess for the optimization problem
     self.phi_apply_bounds()
     # Solve the optimization problem
-    minimize(self.rf, method = "L-BFGS-B", tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
-
+    minimize(self.rf, method = "L-BFGS-B", scale = 150.0, tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
+    # Update phi
+    self.model.update_phi()
+    
 
   # Steps the potential forward with h fixed
   def step(self):
     # Solve the PDE
     self.u.assign(self.model.phi_m)
-    self.solve_pde()
+    self.__solve_pde__()
 
     # Copy the solution u to phi
     self.model.phi.assign(self.u)      
     
-    # Solve the optimization problem 
-    self.solve_opt(9e-9)
-    
-    # Derive values from potential
-    self.model.update_phi()
+    # Solve the optimization problem with the PDE solution as an initial guess
+    self.solve_opt(1e-8)
       
   
   # Correct the potential so that it is above 0 pressure and below overburden.
