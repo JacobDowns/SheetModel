@@ -1,5 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
+from dolfin import MPI, mpi_comm_world
 
 parameters['form_compiler']['precision'] = 30
 
@@ -9,6 +10,8 @@ class PhiSolver(object):
   
   def __init__(self, model):
     
+    # Process number    
+    self.MPI_rank = MPI.rank(mpi_comm_world())
     # A reference to the model, which contains all the inputs we need
     self.model = model
     # Get melt rate
@@ -101,7 +104,8 @@ class PhiSolver(object):
     solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
 
     
-  # External function that solves PDE for u then copies it to model.phi
+  # External function that solves PDE for u then copies it to model.phi and updates
+  # any model fields related to phi
   def solve_pde(self):
     self.__solve_pde__()
     # Copy PDE solution u to model phi
@@ -110,14 +114,16 @@ class PhiSolver(object):
     self.model.update_phi()
 
 
-  # Function that solves optimization problem for phi 
-  def solve_opt(self, tol):
-    # Make sure that the potential is in the correct range so it's a good initial
-    # guess for the optimization problem
-    self.phi_apply_bounds()
+  # Internal function that solves optimization problem for model.phi
+  def __solve_opt__(self, tol):
     # Solve the optimization problem
     minimize(self.rf, method = "L-BFGS-B", scale = 150.0, tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
-    # Update phi
+
+
+  # External function that solves optimization problem for modelphi thehen 
+  # any fields related to phi 
+  def solve_opt(self, tol):
+    self.__solve_opt__(tol)
     self.model.update_phi()
     
 
@@ -126,12 +132,24 @@ class PhiSolver(object):
     # Solve the PDE
     self.u.assign(self.model.phi_m)
     self.__solve_pde__()
-
+    
+    # Check if there is any over or under pressure
+    local_over_or_under = self.phi_apply_bounds()
+    # This will be 1 if there is over or underpressure on any process and 0
+    # otherwise
+    global_over_or_under = MPI.max(mpi_comm_world(), local_over_or_under)
+    
     # Copy the solution u to phi
     self.model.phi.assign(self.u)      
     
-    # Solve the optimization problem with the PDE solution as an initial guess
-    self.solve_opt(1e-8)
+    # If we do get over or under pressure, we'll solve the optimization problem
+    # to correct it
+    if global_over_or_under:
+      # Solve the optimization problem with the PDE solution as an initial guess
+      self.__solve_opt__(2e-8)
+    
+    # Update any fields derived from phi
+    self.model.update_phi()
       
   
   # Correct the potential so that it is above 0 pressure and below overburden.
