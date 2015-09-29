@@ -53,7 +53,7 @@ class SheetModel():
       
     # If the Newton parameters are specified use them. Otherwise use some
     # defaults
-    if 'newton_params' in self.model_inputs:
+    if 'newton_params' in self.model_inputs :
       self.newton_params = self.model_inputs['newton_params']
     else :
       prm = NonlinearVariationalSolver.default_parameters()
@@ -65,6 +65,13 @@ class SheetModel():
       #prm['newton_solver']['linear_solver'] = 'mumps'
       
       self.newton_params = prm
+      
+    # If optimization parameters are specified use them. Otherwise use some 
+    # sensible defaults
+    if 'opt_params' in self.model_inputs:
+      self.opt_params = self.model_inputs['opt_params']
+    else:
+      self.opt_params = {'tol' : 2e-8, 'scale' : 150.0}
 
 
     ### Set up a few more things we'll need

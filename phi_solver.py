@@ -114,22 +114,24 @@ class PhiSolver(object):
     self.model.update_phi()
 
 
-  # Internal function that solves optimization problem for model.phi
-  def __solve_opt__(self, tol):
+  # Internal function that solves optimization problem for model.phi. Tolerance
+  # is the usual solver tolerance and scale rescales the problem. Increasing the
+  # scale can prevent premature convergence
+  def __solve_opt__(self, tol, scale):
     # Solve the optimization problem
-    minimize(self.rf, method = "L-BFGS-B", scale = 150.0, tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
+    minimize(self.rf, method = "L-BFGS-B", scale = scale, tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
 
 
   # External function that solves optimization problem for modelphi thehen 
   # any fields related to phi 
-  def solve_opt(self, tol):
-    self.__solve_opt__(tol)
+  def solve_opt(self, tol, scale):
+    self.__solve_opt__(tol, scale)
     self.model.update_phi()
     
 
   # Steps the potential forward with h fixed
   def step(self):
-    # Solve the PDE
+    # Solve the PDE with an initial guess of phi_m
     self.u.assign(self.model.phi_m)
     self.__solve_pde__()
     
@@ -145,8 +147,10 @@ class PhiSolver(object):
     # If we do get over or under pressure, we'll solve the optimization problem
     # to correct it
     if global_over_or_under:
+      scale = self.model.opt_params['scale']
+      tol = self.model.opt_params['tol']
       # Solve the optimization problem with the PDE solution as an initial guess
-      self.__solve_opt__(2e-8)
+      self.__solve_opt__(tol, scale)
     
     # Update any fields derived from phi
     self.model.update_phi()
