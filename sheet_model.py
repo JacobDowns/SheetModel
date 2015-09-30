@@ -108,9 +108,16 @@ class SheetModel():
     self.h_solver = HSolver(self)
     
     
-  # Steps phi, h, and S forwardt by dt
+  # Steps phi and h forward by dt
   def step(self, dt):
     self.phi_solver.step()
+    self.h_solver.step(dt)
+    
+  
+  # Steps phi forward using the optimization procedure along, then steps h 
+  # forward
+  def step_opt(self, dt):
+    self.phi_solver.solve_opt()
     self.h_solver.step(dt)
     
     

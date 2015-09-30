@@ -122,9 +122,12 @@ class PhiSolver(object):
     minimize(self.rf, method = "L-BFGS-B", scale = scale, tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
 
 
-  # External function that solves optimization problem for modelphi thehen 
+  # External function that solves optimization problem for model.phi then updates 
   # any fields related to phi 
-  def solve_opt(self, tol, scale):
+  def solve_opt(self):
+    scale = self.model.opt_params['scale']
+    tol = self.model.opt_params['tol']
+    
     self.__solve_opt__(tol, scale)
     self.model.update_phi()
     
@@ -135,7 +138,7 @@ class PhiSolver(object):
     self.u.assign(self.model.phi_m)
     self.__solve_pde__()
     
-    # Check if there is any over or under pressure
+    # Check if there is any over or under pressure on this process
     local_over_or_under = self.phi_apply_bounds()
     # This will be 1 if there is over or underpressure on any process and 0
     # otherwise

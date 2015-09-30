@@ -7,7 +7,7 @@ from dolfin import MPI, mpi_comm_world
 # Model input directory
 in_dir = "inputs_slope/"
 # Output directory
-out_dir = "out/"
+out_dir = "out_compare2/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -22,8 +22,8 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-h_init.interpolate(Constant(0.05))
-#File(check_dir + "h_100.xml") >> h_init
+#h_init.interpolate(Constant(0.05))
+File("h_2299.xml") >> h_init
 
 # Load the boundary facet function
 boundaries = FacetFunction('size_t', mesh)
@@ -37,7 +37,7 @@ File(in_dir + "phi_m.xml") >> phi_m
 bc = DirichletBC(V_cg, phi_m, boundaries, 1)
 
 prm = NonlinearVariationalSolver.default_parameters()
-prm['newton_solver']['relaxation_parameter'] = 0.95
+prm['newton_solver']['relaxation_parameter'] = 0.99
 prm['newton_solver']['relative_tolerance'] = 2e-3
 prm['newton_solver']['absolute_tolerance'] = 1e-3
 prm['newton_solver']['error_on_nonconvergence'] = False
@@ -56,30 +56,12 @@ model = SheetModel(model_inputs, in_dir)
 
 ### Run the simulation
 
-# Seconds per day
-spd = pcs['spd']
-# End time
-T = 100.0 * spd
 # Time step
 dt = 60.0 * 60.0
-# Irataion count
-i = 0
 
+model.phi_solver.solve_pde()
+model.phi_solver.phi_apply_bounds()
+model.update_phi()
+model.write_pvds()
+  
 
-while model.t < T:
-  if MPI_rank == 0: 
-    current_time = model.t / spd
-    print "Current Time: " + str(current_time)
-  
-  model.step(dt)
-  
-  if i % 24 == 0:
-    model.write_pvds()
-    
-  if i % 24:
-    model.write_xmls()
-  
-  if MPI_rank == 0: 
-    print
-    
-  i += 1

@@ -22,8 +22,8 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-h_init.interpolate(Constant(0.05))
-#File(check_dir + "h_100.xml") >> h_init
+#h_init.interpolate(Constant(0.05))
+File(check_dir + "h_100.xml") >> h_init
 
 # Load the boundary facet function
 boundaries = FacetFunction('size_t', mesh)
@@ -59,7 +59,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 100.0 * spd
+T = 150.0 * spd
 # Time step
 dt = 60.0 * 60.0
 # Irataion count
@@ -73,7 +73,7 @@ while model.t < T:
   
   model.step(dt)
   
-  if i % 24 == 0:
+  if i % 1 == 0:
     model.write_pvds()
     
   if i % 24:
