@@ -138,14 +138,17 @@ class PhiSolver(object):
     self.u.assign(self.model.phi_m)
     self.__solve_pde__()
     
+    # Copy the solution u to phi
+    self.model.phi.assign(self.u)    
+    
     # Check if there is any over or under pressure on this process
     local_over_or_under = self.phi_apply_bounds()
     # This will be 1 if there is over or underpressure on any process and 0
     # otherwise
-    global_over_or_under = MPI.max(mpi_comm_world(), local_over_or_under)
+    global_over_or_under = MPI.max(mpi_comm_world(), local_over_or_under)      
     
-    # Copy the solution u to phi
-    self.model.phi.assign(self.u)      
+    if self.MPI_rank == 0:
+      print ("Over or Under", global_over_or_under)
     
     # If we do get over or under pressure, we'll solve the optimization problem
     # to correct it
