@@ -52,6 +52,7 @@ model_inputs['d_bcs'] = [bc]
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
 model_inputs['constants'] = pcs
+model_inputs['opt_params'] = {'tol' : 1e-7, 'scale' : 10.0}
 
 # Create the sheet model
 model = SheetModel(model_inputs, in_dir)
