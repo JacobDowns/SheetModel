@@ -1,5 +1,5 @@
-import dolfin
-import dolfin_adjoint
+from dolfin import *
+from dolfin_adjoint import *
 from constants import *
 from phi_solver import *
 from h_solver import *
@@ -62,7 +62,6 @@ class SheetModel():
       prm['newton_solver']['absolute_tolerance'] = 1e-3
       prm['newton_solver']['error_on_nonconvergence'] = False
       prm['newton_solver']['maximum_iterations'] = 25
-      #prm['newton_solver']['linear_solver'] = 'mumps'
       
       self.newton_params = prm
       
@@ -94,6 +93,7 @@ class SheetModel():
     self.phi_out = File(self.out_dir + "phi.pvd")
     self.pfo_out = File(self.out_dir + "pfo.pvd")
     self.u_out = File(self.out_dir + "u.pvd")
+    self.m_out = File(self.out_dir + "m.pvd")
     # An index for labeling checkpoint files
     self.check_index = 0
     # Directory to write checkpoint files
@@ -204,19 +204,43 @@ class SheetModel():
     self.update_pfo()
     
   
-  # Write h, S, pfo, and phi to pvd files
-  def write_pvds(self):
-    self.h_out << self.h
-    self.phi_out << self.phi
-    self.pfo_out << self.pfo
-    self.u_out << self.phi_solver.u
+  # Write fields to pvd files
+  def write_pvds(self, to_write = set([])):
+    if len(to_write) == 0:
+      self.h_out << self.h
+      self.h_out << self.h
+      self.pfo_out << self.pfo
+      self.u_out << self.phi_solver.u
+    else:
+      if 'h' in to_write:
+        self.h_out << self.h
+      if 'phi' in to_write:
+        self.h_out << self.h
+      if 'pfo' in to_write:
+        self.pfo_out << self.pfo
+      if 'u' in to_write:
+        self.u_out << self.phi_solver.u
+      if 'm' in to_write:
+        if isinstance(self.m, dolfin.Expression):
+          self.m_out << project(self.m, self.V_cg)
+        else:
+          self.m_out << self.m        
 
 
   # Write out xml checkpoint flies for h and phi
-  def write_xmls(self):
-    File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
-    File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
-    File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
+  def write_xmls(self, to_write = set([])):
+    if len(to_write) == 0:
+      File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
+      File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
+      File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
+    else :
+      if 'h' in to_write:
+        File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
+      if 'phi' in to_write:
+        File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
+      if 'u' in to_write:
+        File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
+        
     # Increment the checkpoint index
     self.check_index += 1
     

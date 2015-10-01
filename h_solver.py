@@ -51,7 +51,7 @@ class HSolver():
       return dhdt
     
     # Set up ODE solver
-    ode_solver = ode(rhs).set_integrator('vode',  method='bdf', order = 15, nsteps = 3000, max_step = 60.0 * 5.0)
+    ode_solver = ode(rhs).set_integrator('vode',  method='adams', max_step = 60.0 * 5.0)
     ode_solver.set_initial_value(h0, t0)
 
 

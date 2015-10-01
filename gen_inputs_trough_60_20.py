@@ -14,12 +14,11 @@ mesh = Mesh(out_dir + "mesh_60_20.xml")
 V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Melt
-m = project(Expression("(1.0 + 1.5 * (60000.0 - x[0]) / 60000.0) / 31536000.0"), V_cg)
+m = project(Expression("(3.0 * (60000.0 - x[0]) / 60000.0)"), V_cg)
 File(out_dir + "m.xml") << m
 File(out_dir + "m.pvd") << m
 
 # Sliding speed
-plot(m, interactive = True)
 u_b = project(Expression("(1.0 + 150.0 * (60000.0 - x[0]) / 60000.0) / 31536000.0"), V_cg)
 File(out_dir + "u_b.xml") << u_b
 File(out_dir + "u_b.pvd") << u_b

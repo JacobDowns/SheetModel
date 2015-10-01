@@ -32,12 +32,6 @@ File(in_dir + "boundaries.xml") >> boundaries
 phi_m = Function(V_cg)
 File(in_dir + "phi_m.xml") >> phi_m
 
-# Uniform melt of 3 meters per year
-m = Function(V_cg)
-# Seconds per year
-spy = pcs['spy']
-m.interpolate(Constant(3.0 / spy))
-
 # Enforce 0 pressure bc at margin
 bc = DirichletBC(V_cg, phi_m, boundaries, 1)
 
@@ -46,8 +40,8 @@ pcs['k'] = 5e-3
 
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
-prm['newton_solver']['relative_tolerance'] = 1e-3
-prm['newton_solver']['absolute_tolerance'] = 1e-3
+prm['newton_solver']['relative_tolerance'] = 1e-5
+prm['newton_solver']['absolute_tolerance'] = 1e-5
 prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 25
 
@@ -57,7 +51,6 @@ model_inputs['h_init'] = h_init
 model_inputs['d_bcs'] = [bc]
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
-model_inputs['m'] = m
 model_inputs['constants'] = pcs
 
 # Create the sheet model
@@ -71,7 +64,7 @@ spd = pcs['spd']
 # End time
 T = 75.0 * spd
 # Time step
-dt = 60.0 * 60.0 * 6.0
+dt = 60.0 * 60.0 * 8.0
 # Irataion count
 i = 0
 
