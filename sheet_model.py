@@ -1,5 +1,5 @@
-from dolfin import *
-from dolfin_adjoint import *
+import dolfin
+import dolfin_adjoint
 from constants import *
 from phi_solver import *
 from h_solver import *
@@ -112,6 +112,7 @@ class SheetModel():
   def step(self, dt):
     self.phi_solver.step()
     self.h_solver.step(dt)
+    self.update_time_dependent_vars()
     
   
   # Steps phi forward using the optimization procedure along, then steps h 
@@ -119,44 +120,59 @@ class SheetModel():
   def step_opt(self, dt):
     self.phi_solver.solve_opt()
     self.h_solver.step(dt)
+    self.update_time_dependent_vars()
     
     
   # Load all model inputs from a directory except for the mesh and initial 
   # conditions on h, h_w, and phi
   def load_inputs(self, in_dir):
     # Bed
-    B = Function(self.V_cg)
-    File(in_dir + "B.xml") >> B
+    if not 'B' in self.model_inputs:
+      B = Function(self.V_cg)
+      File(in_dir + "B.xml") >> B
+      self.model_inputs['B'] = B
+      
     # Ice thickness
-    H = Function(self.V_cg)
-    File(in_dir + "H.xml") >> H
+    if not 'H' in self.model_inputs:
+      H = Function(self.V_cg)
+      File(in_dir + "H.xml") >> H
+      self.model_inputs['H'] = H
+      
     # Melt
-    m = Function(self.V_cg)
-    File(in_dir + "m.xml") >> m
+    if not 'm' in self.model_inputs:
+      m = Function(self.V_cg)
+      File(in_dir + "m.xml") >> m
+      self.model_inputs['m'] = m
+      
     # Sliding speed
-    u_b = Function(self.V_cg)
-    File(in_dir + "u_b.xml") >> u_b
+    if not 'u_b' in self.model_inputs:
+      u_b = Function(self.V_cg)
+      File(in_dir + "u_b.xml") >> u_b 
+      self.model_inputs['u_b'] = u_b
+      
     # Potential at 0 pressure
-    phi_m = Function(self.V_cg)
-    File(in_dir + "phi_m.xml") >> phi_m
+    if not 'phi_m' in self.model_inputs:
+      phi_m = Function(self.V_cg)
+      File(in_dir + "phi_m.xml") >> phi_m
+      self.model_inputs['phi_m'] = phi_m
+      
     # Potential at overburden pressure
-    phi_0 = Function(self.V_cg)
-    File(in_dir + "phi_0.xml") >> phi_0
+    if not 'phi_0' in self.model_inputs:
+      phi_0 = Function(self.V_cg)
+      File(in_dir + "phi_0.xml") >> phi_0
+      self.model_inputs['phi_0'] = phi_0
+      
     # Ice overburden pressure
-    p_i = Function(self.V_cg)
-    File(in_dir + "p_i.xml") >> p_i
+    if not 'p_i' in self.model_inputs:
+      p_i = Function(self.V_cg)
+      File(in_dir + "p_i.xml") >> p_i
+      self.model_inputs['p_i'] = p_i
+      
     # Boundary facet function
-    boundaries = FacetFunction('size_t', self.mesh)
-    File(in_dir + "boundaries.xml") >> boundaries
-  
-    self.model_inputs['B'] = B
-    self.model_inputs['H'] = H
-    self.model_inputs['m'] = m
-    self.model_inputs['u_b'] = u_b
-    self.model_inputs['phi_m'] = phi_m
-    self.model_inputs['phi_0'] = phi_0
-    self.model_inputs['p_i'] = p_i
-    self.model_inputs['boundaries'] = boundaries
+    if not 'boundaries' in self.model_inputs:
+      boundaries = FacetFunction('size_t', self.mesh)
+      File(in_dir + "boundaries.xml") >> boundaries
+      self.model_inputs['boundaries'] = boundaries
     
   
   # Update the effective pressure to reflect current value of phi
@@ -203,5 +219,15 @@ class SheetModel():
     File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
     # Increment the checkpoint index
     self.check_index += 1
-  
+    
+    
+  # Updates the potentially time dependent variables (for now this is just the
+  # melt rate)
+  def update_time_dependent_vars(self):
+    # Check if the melt is an expression and if it has an attribute t. If so 
+    # update t to the model time
+    if isinstance(self.m, dolfin.Expression):
+      if hasattr(self.m, 't'):
+        # Update the time
+        self.m.t = self.t  
     
