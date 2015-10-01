@@ -35,7 +35,10 @@ File(in_dir + "phi_m.xml") >> phi_m
 # Time dependent melt rate
 # Seconds per year
 spy = pcs['spy']
-m = Expression('(3.0 * (60000.0 - x[0]) / 60000.0) * (cos(((2.0 * pi) / spy) * t) + 1.0) / spy', pi = pi, spy = spy, t = 0.0)
+m = Expression('0.5 * (3.0 * (60000.0 - x[0]) / 60000.0) * (cos(((2.0 * pi) / spy) * t) + 1.0)', pi = pi, spy = spy, t = 0.0)
+
+plot(project(m, V_cg), interactive = True)
+quit()
 
 # Enforce 0 pressure bc at margin
 bc = DirichletBC(V_cg, phi_m, boundaries, 1)
