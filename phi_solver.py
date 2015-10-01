@@ -141,6 +141,8 @@ class PhiSolver(object):
     # Copy the solution u to phi
     self.model.phi.assign(self.u)    
     
+    self.model.update_phi()
+    
     # Check if there is any over or under pressure on this process
     local_over_or_under = self.phi_apply_bounds()
     # This will be 1 if there is over or underpressure on any process and 0
@@ -174,9 +176,9 @@ class PhiSolver(object):
     phi_min_vals = self.phi_min.vector().array()
     
     # Indexes in the array of phi vals that are overpressure
-    indexes_over = phi_vals > phi_max_vals
+    indexes_over = phi_vals > phi_max_vals + 1e-3
     # Indexes that are underpressure
-    indexes_under = phi_vals < phi_min_vals    
+    indexes_under = phi_vals < phi_min_vals - 1e-3    
     
     phi_vals[indexes_over] = phi_max_vals[indexes_over]
     phi_vals[indexes_under] = phi_min_vals[indexes_under]
