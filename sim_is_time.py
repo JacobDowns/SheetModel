@@ -7,7 +7,7 @@ from dolfin import MPI, mpi_comm_world
 # Model input directory
 in_dir = "inputs_is/"
 # Output directory
-out_dir = "out_is/"
+out_dir = "out_is_time/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -45,7 +45,7 @@ def m_time(t):
 bc = DirichletBC(V_cg, phi_m, boundaries, 1)
 
 # Use a slightly lower conductivity than the default
-pcs['k'] = 5e-3
+pcs['k'] = 8e-3
 
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
@@ -72,7 +72,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 100.0 * spd
+T = 1.5 * spy
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
@@ -80,7 +80,7 @@ i = 0
 
 while model.t < T:
   # Hackishly update the melt
-  model.m = project(m_time(model.t) * m, V_cg)  
+  model.m.assign(project(m_time(model.t) * m, V_cg))  
   
   if MPI_rank == 0: 
     current_time = model.t / spd
