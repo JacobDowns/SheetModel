@@ -27,8 +27,20 @@ class SheetModel():
     self.B = self.model_inputs['B']
     # Basal sliding speed
     self.u_b = self.model_inputs['u_b']
+    # Function form of sliding speed
+    self.u_b_func = Function(self.V_cg)
+    if isinstance(self.u_b, dolfin.Expression):
+        self.u_b_func.assign(project(self.u_b, self.V_cg))
+    else :
+        self.u_b_func.assign(self.u_b)
     # Melt rate
     self.m = self.model_inputs['m']
+    # Function form of melt rate
+    self.m_func = Function(self.V_cg)
+    if isinstance(self.m, dolfin.Expression):
+        self.m_func.assign(project(self.m, self.V_cg))
+    else :
+        self.m_func.assign(self.m)
     # Cavity gap height
     self.h = self.model_inputs['h_init']
     # Potential at 0 pressure
@@ -94,6 +106,7 @@ class SheetModel():
     self.pfo_out = File(self.out_dir + "pfo.pvd")
     self.u_out = File(self.out_dir + "u.pvd")
     self.m_out = File(self.out_dir + "m.pvd")
+    self.u_b_out = File(self.out_dir + "u_b.pvd")
     # An index for labeling checkpoint files
     self.check_index = 0
     # Directory to write checkpoint files
@@ -110,17 +123,21 @@ class SheetModel():
     
   # Steps phi and h forward by dt
   def step(self, dt):
+    self.update_time_dependent_vars()
     self.phi_solver.step()
     self.h_solver.step(dt)
-    self.update_time_dependent_vars()
+    # Update model time
+    self.t += dt
     
   
-  # Steps phi forward using the optimization procedure along, then steps h 
+  # Steps phi forward using the optimization procedure then steps h 
   # forward
   def step_opt(self, dt):
+    self.update_time_dependent_vars()
     self.phi_solver.solve_opt()
     self.h_solver.step(dt)
-    self.update_time_dependent_vars()
+    # Update model time
+    self.t += dt
     
     
   # Load all model inputs from a directory except for the mesh and initial 
@@ -205,7 +222,8 @@ class SheetModel():
     
   
   # Write fields to pvd files
-  def write_pvds(self, to_write = set([])):
+  def write_pvds(self, to_write = []):
+    to_write = set(to_write)
     if len(to_write) == 0:
       self.h_out << self.h
       self.h_out << self.h
@@ -221,10 +239,9 @@ class SheetModel():
       if 'u' in to_write:
         self.u_out << self.phi_solver.u
       if 'm' in to_write:
-        if isinstance(self.m, dolfin.Expression):
-          self.m_out << project(self.m, self.V_cg)
-        else:
-          self.m_out << self.m        
+        self.m_out << self.m_func
+      if 'u_b' in to_write:
+        self.u_b_out << self.u_b_func
 
 
   # Write out xml checkpoint flies for h and phi
@@ -245,8 +262,7 @@ class SheetModel():
     self.check_index += 1
     
     
-  # Updates the potentially time dependent variables (for now this is just the
-  # melt rate)
+  # Updates the potentially time dependent expressions (m and u_b)
   def update_time_dependent_vars(self):
     # Check if the melt is an expression and if it has an attribute t. If so 
     # update t to the model time
@@ -254,4 +270,13 @@ class SheetModel():
       if hasattr(self.m, 't'):
         # Update the time
         self.m.t = self.t  
-    
+        # Update expression form of m
+        self.m_func.assign(project(self.m, self.V_cg))
+        
+    # Same deal for sliding speed
+    if isinstance(self.u_b, dolfin.Expression):
+      if hasattr(self.u_b, 't'):
+        # Update the time
+        self.u_b.t = self.t  
+        # Update expression form of u_b
+        self.u_b_func.assign(project(self.u_b, self.V_cg))

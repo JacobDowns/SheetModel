@@ -29,7 +29,7 @@ class HSolver():
     ### Static arrays used in the ODE rhs
     
     # Vector for sliding speed
-    u_b_n = model.u_b.vector().array()
+    u_b_n = model.u_b_func.vector().array()
     # Initial sheet height
     h0 = model.h.vector().array()
     
@@ -72,9 +72,6 @@ class HSolver():
     # Retrieve values from the ODE solver    
     self.model.h.vector().set_local(self.ode_solver.y)
     self.model.h.vector().apply("insert")
-  
-    # Update the model time
-    self.model.t = self.ode_solver.t
     
     if self.MPI_rank == 0:
       print "Done."
