@@ -74,16 +74,17 @@ for i in range(len(domain_starts)):
   total_melt += l * w * ((m1 - m2) / 2.0)
   
   moulin_melts.append(total_melt)
- 
+
+print sum(moulin_melts) 
 
 ### Compute base integral under each hat function
-f = Function(V_cg)
+m = Function(V_cg)
 
 hat_integrals = []
 for dof in dofs:
-  f.vector()[:] = zeros(V_cg.dim())  
-  f.vector()[dof] = 1.0
-  hat_integrals.append(assemble(f * dx))
+  m.vector()[:] = zeros(V_cg.dim())  
+  m.vector()[dof] = 1.0
+  hat_integrals.append(assemble(m * dx))
 
 print len(hat_integrals)
 # From the base integrals we can computes the desired dof values
@@ -91,8 +92,11 @@ dof_vals = array(moulin_melts) / array(hat_integrals)
 
 print dof_vals
 
-f.vector()[dofs] = dof_vals
-print assemble(f * dx)
+m.vector()[dofs] = dof_vals
+print assemble(m * dx)
 
-plot(f, interactive = True)
+plot(m, interactive = True)
+
+File("inputs_trough1/m_point2.pvd") << m
+File("inputs_trough1/m_point2.xml") << m
   
