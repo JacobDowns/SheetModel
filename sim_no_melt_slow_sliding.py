@@ -58,9 +58,7 @@ def m_scale(t):
 # Sliding speed
 u_b = Function(V_cg)
 spy = pcs['spy']
-u_b.interpolate(Constant(100.0 / spy))
-# Copy of sliding speed
-u_b1 = Function(V_cg)
+u_b.interpolate(Constant(10.0 / spy))
 
 # Use a slightly lower conductivity than the default
 pcs['k'] = 5e-3
@@ -93,7 +91,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 4.0 * spm
+T = 6.0 * spm
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
