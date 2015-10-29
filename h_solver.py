@@ -16,6 +16,8 @@ class HSolver():
     
     # Effective pressure
     N = model.N   
+    # Sliding speed
+    u_b = model.u_b_func
     # Initial model time
     t0 = model.t
     # Rate factor
@@ -24,12 +26,6 @@ class HSolver():
     l_r = model.pcs['l_r']
     # Bump height
     h_r = model.pcs['h_r']
-    
-    
-    ### Static arrays used in the ODE rhs
-    
-    # Vector for sliding speed
-    u_b_n = model.u_b_func.vector().array()
     # Initial sheet height
     h0 = model.h.vector().array()
     
@@ -41,7 +37,7 @@ class HSolver():
       # Ensure that the sheet height is positive
       h_n[h_n < 0.0] = 0.0
       # Sheet opening term
-      w_n = u_b_n * (h_r - h_n) / l_r
+      w_n = u_b.vector().array() * (h_r - h_n) / l_r
       # Ensure that the opening term is non-negative
       w_n[w_n < 0.0] = 0.0
       # Sheet closure term

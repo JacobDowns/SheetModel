@@ -41,6 +41,8 @@ class SheetModel():
         self.m_func.assign(project(self.m, self.V_cg))
     else :
         self.m_func.assign(self.m)
+    # Function form of flux
+    #self.q_func
     # Cavity gap height
     self.h = self.model_inputs['h_init']
     # Potential at 0 pressure
@@ -107,6 +109,7 @@ class SheetModel():
     self.u_out = File(self.out_dir + "u.pvd")
     self.m_out = File(self.out_dir + "m.pvd")
     self.u_b_out = File(self.out_dir + "u_b.pvd")
+    self.q_out = File(self.out_dir + "q.pvd")
     # An index for labeling checkpoint files
     self.check_index = 0
     # Directory to write checkpoint files
@@ -242,14 +245,18 @@ class SheetModel():
         self.m_out << self.m_func
       if 'u_b' in to_write:
         self.u_b_out << self.u_b_func
+      if 'q' in to_write:
+        self.q_func.assign(project(self.phi_solver.q, self.V_cg))
+        self.q_out << self.q_func
 
 
   # Write out xml checkpoint flies for h and phi
-  def write_xmls(self, to_write = set([])):
+  def write_xmls(self, to_write = []):
+    to_write = set(to_write)
     if len(to_write) == 0:
       File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
       File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
-      File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
+      #File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
     else :
       if 'h' in to_write:
         File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
@@ -257,9 +264,23 @@ class SheetModel():
         File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
       if 'u' in to_write:
         File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
+      if 'u_b' in to_write:
+        File(self.check_dir + "u_b_" + str(self.check_index) + ".xml") << self.u_b_func
         
     # Increment the checkpoint index
     self.check_index += 1
+    
+  
+  # Updates the melt rate function
+  def update_m(self, new_m):
+    self.m.assign(new_m)
+    self.m_func.assign(new_m)
+    
+  
+  # Update sliding speed
+  def update_u_b(self, new_u_b):
+    self.u_b.assign(new_u_b)
+    self.u_b_func.assign(new_u_b)
     
     
   # Updates the potentially time dependent expressions (m and u_b)
