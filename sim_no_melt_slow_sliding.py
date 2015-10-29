@@ -49,8 +49,7 @@ spm = pcs['spy'] / 12.0
 
 # Amount to scale the sliding speed
 def m_scale(t):
-  print t
-  # Cycle e
+  # Reduce melt for a month
   if t <= spm:
     return 1.0 - (t / (spm / 0.5))
   else :
