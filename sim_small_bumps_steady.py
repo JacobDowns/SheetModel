@@ -39,7 +39,7 @@ bc = DirichletBC(V_cg, phi_m, boundaries, 1)
 # Use a slightly lower conductivity than the default
 pcs['k'] = 5e-3
 # Bump height
-pcs['h_r'] = 0.75
+pcs['h_r'] = 0.05
 
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
