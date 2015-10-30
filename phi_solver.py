@@ -32,7 +32,7 @@ class PhiSolver(object):
     # Rate factor
     A = model.pcs['A']
     # Sheet conductivity
-    k = model.pcs['k']
+    k = model.k
     # Bump height
     h_r = model.pcs['h_r']
     # Distance between bumps
@@ -54,7 +54,7 @@ class PhiSolver(object):
     # Expression for effective pressure in terms of potential
     Nu = phi_0 - u
     # Flux vector
-    qu = -Constant(k) * h**alpha * (dot(grad(u), grad(u)) + phi_reg)**(delta / 2.0) * grad(u)
+    qu = -k * h**alpha * (dot(grad(u), grad(u)) + phi_reg)**(delta / 2.0) * grad(u)
     # Opening term 
     wu = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
     # Closing term
@@ -90,7 +90,7 @@ class PhiSolver(object):
       bc.apply(self.phi_max.vector())    
     
     # Functional for the potential
-    J_phi = Constant((1. / beta) * k) * h**alpha * (dot(grad(phi), grad(phi)) + phi_reg)**(beta / 2.0) * dx  
+    J_phi = Constant(1. / beta) * k * h**alpha * (dot(grad(phi), grad(phi)) + phi_reg)**(beta / 2.0) * dx  
     J_phi += (Constant(0.25 * A) * h * N**4) * dx
     J_phi += (w - m) * phi * dx
     

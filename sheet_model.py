@@ -27,12 +27,14 @@ class SheetModel():
     self.B = self.model_inputs['B']
     # Basal sliding speed
     self.u_b = self.model_inputs['u_b']
+    
     # Function form of sliding speed
     self.u_b_func = Function(self.V_cg)
     if isinstance(self.u_b, dolfin.Expression):
         self.u_b_func.assign(project(self.u_b, self.V_cg))
     else :
         self.u_b_func.assign(self.u_b)
+        
     # Melt rate
     self.m = self.model_inputs['m']
     # Function form of melt rate
@@ -41,8 +43,7 @@ class SheetModel():
         self.m_func.assign(project(self.m, self.V_cg))
     else :
         self.m_func.assign(self.m)
-    # Function form of flux
-    #self.q_func
+        
     # Cavity gap height
     self.h = self.model_inputs['h_init']
     # Potential at 0 pressure
@@ -64,6 +65,23 @@ class SheetModel():
       self.pcs = self.model_inputs['constants']
     else :
       self.pcs = pcs
+      
+    # Function form of hydraulic conductivity
+    self.k_func = Function(self.V_cg)
+    # If we get a hydraulic conductivity expression or function use it
+    if 'k' in self.model_inputs:
+      self.k = self.model_inputs['k']
+      # If the conductivity is an expression project it
+      if isinstance(self.k, dolfin.Expression):
+        self.k_func.assign(project(self.k, self.V_cg))
+      else :
+        # If it's a function then just assign it
+        self.k_func.assign(self.k)
+    else :
+      # Otherwise use some constant conductivity
+      self.k = Function(self.V_cg)
+      self.k.interpolate(Constant(self.pcs['k']))
+      self.k_func.assign(self.k)
       
     # If the Newton parameters are specified use them. Otherwise use some
     # defaults
@@ -110,6 +128,7 @@ class SheetModel():
     self.m_out = File(self.out_dir + "m.pvd")
     self.u_b_out = File(self.out_dir + "u_b.pvd")
     self.q_out = File(self.out_dir + "q.pvd")
+    self.k_out = File(self.out_dir + "k.pvd")
     # An index for labeling checkpoint files
     self.check_index = 0
     # Directory to write checkpoint files
@@ -248,6 +267,8 @@ class SheetModel():
       if 'q' in to_write:
         self.q_func.assign(project(self.phi_solver.q, self.V_cg))
         self.q_out << self.q_func
+      if 'k' in to_write:
+        self.k_out << self.k_func
 
 
   # Write out xml checkpoint flies for h and phi
@@ -266,6 +287,8 @@ class SheetModel():
         File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
       if 'u_b' in to_write:
         File(self.check_dir + "u_b_" + str(self.check_index) + ".xml") << self.u_b_func
+      if 'k' in to_write:
+        File(self.check_dir + "k_" + str(self.check_index) + ".xml") << self.k_func
         
     # Increment the checkpoint index
     self.check_index += 1
@@ -283,7 +306,13 @@ class SheetModel():
     self.u_b_func.assign(new_u_b)
     
     
-  # Updates the potentially time dependent expressions (m and u_b)
+  # Updates the hydraulic conductivity
+  def update_k(self, new_k):
+    self.k.assign(new_k)
+    self.k_func.assign(new_k)
+    
+    
+  # Updates the potentially time dependent expressions (m, u_b, k)
   def update_time_dependent_vars(self):
     # Check if the melt is an expression and if it has an attribute t. If so 
     # update t to the model time
@@ -291,7 +320,7 @@ class SheetModel():
       if hasattr(self.m, 't'):
         # Update the time
         self.m.t = self.t  
-        # Update expression form of m
+        # Update function form of m
         self.m_func.assign(project(self.m, self.V_cg))
         
     # Same deal for sliding speed
@@ -299,5 +328,11 @@ class SheetModel():
       if hasattr(self.u_b, 't'):
         # Update the time
         self.u_b.t = self.t  
-        # Update expression form of u_b
+        # Update function form of u_b
         self.u_b_func.assign(project(self.u_b, self.V_cg))
+        
+    # Same deal for k
+    if isinstance(self.k, dolfin.Expression):
+      if hasattr(self.k, 't'):
+        self.k.t = self.t  
+        self.k_func.assign(project(self.k, self.V_cg))
