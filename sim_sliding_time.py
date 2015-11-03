@@ -50,11 +50,11 @@ L = spm * 2.0
 def u_b_scale(t):
   # Cycle e
   if t <= L:
-    return 1.0 - (t / (L / 0.5))
+    return 1.0 - (t / (L / 0.9))
   elif t <= 2.0 * L:
-    return 0.5
+    return 0.1
   elif t <= 3.0 * L:
-    return 0.5 + (t - 2.0 * L) / (L / 0.5)
+    return 0.1 + (t - 2.0 * L) / (L / 0.9)
   else:
     return 1.0
 
@@ -96,7 +96,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 4.0 * spm
+T = 8.0 * spm
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
