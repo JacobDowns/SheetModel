@@ -96,7 +96,7 @@ spd = pcs['spd']
 # End time
 T = 8.0 * spm
 # Time step
-dt = 60.0 * 60.0 * 8.0
+dt = 60.0 * 60.0 * 4.0
 # Iteration count
 i = 0
 
@@ -107,15 +107,14 @@ while model.t < T:
   
   model.step(dt)
   
-  if i % 3 == 0:
-    model.write_pvds(['h', 'pfo', 'u_b'])
+  if i % 2 == 0:
+    model.write_pvds(['h', 'pfo', 'k'])
     
-  if i % 1 == 0:
+  if i % 2 == 0:
     model.write_xmls()
   
   if MPI_rank == 0: 
     print
   
-  
-  model.update_k(project(Constant(k_scale(model.t)) * k, V_cg))
+  model.update_k(project(Constant(k_scale(model.t) * 5e-3), V_cg))
   i += 1
