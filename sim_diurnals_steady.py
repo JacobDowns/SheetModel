@@ -85,8 +85,8 @@ i = 0
 # Seconds per year
 spy = pcs['spy']
 # Somewhat arbitrary constant for sliding law
-C = Constant(0.1e-8 / spy)
-u_b_reg = Constant(100.0)
+C = Constant(1e-9 / spy)
+u_b_reg = Constant(1000.0)
 
 while model.t < T:
   if MPI_rank == 0: 
