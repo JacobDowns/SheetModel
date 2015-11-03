@@ -85,7 +85,7 @@ i = 0
 # Seconds per year
 spy = pcs['spy']
 # Somewhat arbitrary constant for sliding law
-C = Constant(0.33e-8 / spy)
+C = Constant(0.25e-8 / spy)
 u_b_reg = Constant(10.0)
 
 while model.t < T:
@@ -106,6 +106,5 @@ while model.t < T:
     
   # Update the sliding velocity
   model.update_u_b(project(C * (tau_b**3 / (model.N + u_b_reg)), V_cg))
-  plot(model.u_b * spy, interactive = True)
   
   i += 1
