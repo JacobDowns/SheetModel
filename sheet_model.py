@@ -104,6 +104,12 @@ class SheetModel():
     else:
       self.opt_params = {'tol' : 2e-8, 'scale' : 150.0}
 
+    # If the initial time is specified then use it, otherwise use the default
+    # initial time of 0
+    # Current time
+    self.t = 0.0
+    if 't0' in self.model_inputs:
+      self.t = self.model_inputs['t0']
 
     ### Set up a few more things we'll need
 
@@ -115,8 +121,7 @@ class SheetModel():
     self.p_w = Function(self.V_cg)
     # Pressure as a fraction of overburden
     self.pfo = Function(self.V_cg)
-    # Current time
-    self.t = 0.0
+    
     
     
     ### Output files
@@ -289,6 +294,8 @@ class SheetModel():
         File(self.check_dir + "u_b_" + str(self.check_index) + ".xml") << self.u_b_func
       if 'k' in to_write:
         File(self.check_dir + "k_" + str(self.check_index) + ".xml") << self.k_func
+      if 'pfo' in to_write:
+        File(self.check_dir + "pfo_" + str(self.check_index) + ".xml") << self.pfo
         
     # Increment the checkpoint index
     self.check_index += 1
