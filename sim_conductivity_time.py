@@ -41,18 +41,31 @@ File(in_dir + "phi_m.xml") >> phi_m
 tau_b = Function(V_cg)
 File(in_dir + "tau_b.xml") >> tau_b
 
-
 # Function that modifies the melt function over time
+# Seconds per year
 spy = pcs['spy']
+# Parameters for logistic functions
+t0 = 0.825 * spy
+t1 = 0.175 * spy
+# Value to scale the logistic curve
+M = 1.0 / (1.0 + e**(-7e-7 * t1))
+
 def m_time(t):
-  return max(cos((2.0 * pi / spy) * t), 0.0)
+  melt1 = 1.0 / (1.0 + e**(-7e-7 * (t - t0)))
+  melt2 = 1.0 / (1.0 + e**(-7e-7 * (-t + t1)))  
+  return max(melt1, melt2) * (1.0 / M)
 
 # Define a time varying hydraulic conductivity
 # Maximum and minimum conductivities
 min_k = 1e-3
 max_k = 5e-3
-# Conductivity expression
-k = Expression("(max_k / (max_k + min_k)) * (min_k + max(cos((2.0 * pi / spy) * t) * max_k, 0.0))", t = 0.0, spy = spy, pi = pi, min_k = min_k, max_k = max_k)
+
+def k_time(t):
+  k1 = 1.0 / (1.0 + e**(-7e-7 * (t - t0)))
+  k2 = 1.0 / (1.0 + e**(-7e-7 * (-t + t1))) 
+  kval = max(k1, k2) * ((max_k - min_k) / M) + min_k
+  return kval   
+
   
 # Load initial melt function
 m = Function(V_cg) 
@@ -123,7 +136,7 @@ while model.t < T:
     model.write_pvds(['h', 'pfo', 'u_b', 'm', 'k'])
     
   if i % 6 == 0:
-    model.write_xmls()
+    model.write_xmls(['pfo', 'h', 'u_b'])
   
   if MPI_rank == 0: 
     print
@@ -131,6 +144,8 @@ while model.t < T:
   # Update the sliding velocity
   model.update_u_b(project(Constant(C) * (tau_b**3 / model.N), V_cg))
   # Update the melt
-  model.update_m(project(Constant(m_time(model.t)) * m1))
+  model.update_m(project(Constant(m_time(model.t)) * m1, V_cg))
+  # Update conductivity
+  model.update_k(project(Constant(k_time(model.t)), V_cg))
   
   i += 1
