@@ -57,7 +57,7 @@ def m_time(t):
 
 # Define a time varying hydraulic conductivity
 # Maximum and minimum conductivities
-min_k = 1e-3
+min_k = 5e-4
 max_k = 5e-3
 
 def k_time(t):
@@ -65,6 +65,12 @@ def k_time(t):
   k2 = 1.0 / (1.0 + e**(-7e-7 * (-t + t1))) 
   kval = max(k1, k2) * ((max_k - min_k) / M) + min_k
   return kval   
+  
+ts = linspace(0.0, spy, 1000)
+ks = array(map(k_time, ts))
+plot(ts, ks)
+show()
+quit()
 
   
 # Load initial melt function
