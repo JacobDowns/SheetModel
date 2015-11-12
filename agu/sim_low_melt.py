@@ -15,7 +15,7 @@ from constants import *
 # Model input directory
 in_dir = "inputs_high_melt/"
 # Output directory
-out_dir = "out_high_melt1/"
+out_dir = "out_low_melt1/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -39,6 +39,7 @@ File(in_dir + "m.xml") >> m
 # Moulin melt function
 m_moulin = Function(V_cg)
 File(in_dir + "m_moulin.xml") >> m_moulin
+m_moulin = project(m_moulin * 0.5, V_cg)
 
 # Sliding speed
 u_b = Function(V_cg)
