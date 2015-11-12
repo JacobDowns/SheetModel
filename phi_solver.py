@@ -1,6 +1,7 @@
 from dolfin import *
 from dolfin_adjoint import *
 from dolfin import MPI, mpi_comm_world
+from colored import fg, attr
 
 parameters['form_compiler']['precision'] = 30
 
@@ -134,6 +135,9 @@ class PhiSolver(object):
 
   # Steps the potential forward with h fixed
   def step(self):
+    # Pretty colors! (:
+    #print('%s' % (fg(231)))
+    
     # Solve the PDE with an initial guess of phi_m
     self.u.assign(self.model.phi_m)
     self.__solve_pde__()
@@ -147,10 +151,7 @@ class PhiSolver(object):
     local_over_or_under = self.phi_apply_bounds()
     # This will be 1 if there is over or underpressure on any process and 0
     # otherwise
-    global_over_or_under = MPI.max(mpi_comm_world(), local_over_or_under)      
-    
-    if self.MPI_rank == 0:
-      print ("Over or Under", global_over_or_under)
+    global_over_or_under = MPI.max(mpi_comm_world(), local_over_or_under)        
     
     # If we do get over or under pressure, we'll solve the optimization problem
     # to correct it
@@ -162,6 +163,9 @@ class PhiSolver(object):
     
     # Update any fields derived from phi
     self.model.update_phi()
+    
+    # No more pretty colors. ):
+    #print('%s' % (attr(0))),
       
   
   # Correct the potential so that it is above 0 pressure and below overburden.

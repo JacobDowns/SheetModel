@@ -4,7 +4,7 @@ from constants import *
 from phi_solver import *
 from h_solver import *
 
-""" Wrapper class Schoof's constrained sheet model."""
+""" Wrapper class for Schoof's constrained sheet model."""
 
 class SheetModel():
 
@@ -16,69 +16,67 @@ class SheetModel():
     self.V_cg = FunctionSpace(self.mesh, "CG", 1)
     self.model_inputs = model_inputs
     
-    # If an input directory is specified, load model inputs from there. 
-    # Otherwise use the specified model inputs dictionary.
-    if in_dir:
-      self.load_inputs(in_dir)
-      
-    # Ice thickness    
-    self.H = self.model_inputs['H']
-    # Bed elevation       
-    self.B = self.model_inputs['B']
-    # Basal sliding speed
-    self.u_b = self.model_inputs['u_b']
-    
-    # Function form of sliding speed
-    self.u_b_func = Function(self.V_cg)
-    if isinstance(self.u_b, dolfin.Expression):
-        self.u_b_func.assign(project(self.u_b, self.V_cg))
-    else :
-        self.u_b_func.assign(self.u_b)
-        
-    # Melt rate
-    self.m = self.model_inputs['m']
-    # Function form of melt rate
-    self.m_func = Function(self.V_cg)
-    if isinstance(self.m, dolfin.Expression):
-        self.m_func.assign(project(self.m, self.V_cg))
-    else :
-        self.m_func.assign(self.m)
-        
-    # Cavity gap height
-    self.h = self.model_inputs['h_init']
-    # Potential at 0 pressure
-    self.phi_m = self.model_inputs['phi_m']
-    # Ice overburden pressure
-    self.p_i = self.model_inputs['p_i']
-    # Potential at overburden pressure
-    self.phi_0 = self.model_inputs['phi_0']
-    # Dirichlet boundary conditions
-    self.d_bcs = self.model_inputs['d_bcs']
-    # Facet function marking boundaries
-    self.boundaries = self.model_inputs['boundaries']
-    # Output directory
-    self.out_dir = self.model_inputs['out_dir']
-    
     # If there is a dictionary of physical constants specified, use it. 
     # Otherwise use the defaults. 
     if 'constants' in self.model_inputs :
       self.pcs = self.model_inputs['constants']
     else :
       self.pcs = pcs
+    
+    # If an input directory is specified, load model inputs from there. 
+    # Otherwise use the specified model inputs dictionary.
+    if in_dir:
+      self.load_inputs(in_dir)
       
-    # Function form of hydraulic conductivity
+    # Ice thickness    
+    self.H = Function(self.V_cg)
+    self.H.assign(self.model_inputs['H'])
+    
+    # Bed elevation     
+    self.B = Function(self.V_cg)
+    self.B.assign(self.model_inputs['B'])
+    
+    # Basal sliding speed
+    self.u_b = Function(self.V_cg)
+    self.u_b_func = Function(self.V_cg)
+    self.assign_var('u_b', self.u_b, self.u_b_func)
+    
+    # Melt rate
+    self.m = Function(self.V_cg)
+    self.m_func = Function(self.V_cg)
+    self.assign_var('m', self.m, self.m_func)
+    
+    # Cavity gap height
+    self.h = self.model_inputs['h_init']
+    # Potential at 0 pressure
+    self.phi_m = project(pcs['rho_w'] * pcs['g'] * self.B, self.V_cg)
+    # Ice overburden pressure
+    self.p_i = project(pcs['rho_i'] * pcs['g'] * self.H, self.V_cg)
+    # Potential at overburden pressure
+    self.phi_0 = project(self.phi_m + self.p_i, self.V_cg)
+
+
+    # Facet function marking boundaries
+    self.boundaries = self.model_inputs['boundaries']
+    
+    # If there are boundary conditions specified, use them. Otherwise apply
+    # default bc of 0 pressure on the margin
+    if 'd_bcs' in self.model_inputs:
+      # Dirichlet boundary conditions
+      self.d_bcs = self.model_inputs['d_bcs']    
+    else :
+      # By default, a marker 0f 1 denotes the margin
+      self.d_bcs = [DirichletBC(self.V_cg, self.phi_m, self.boundaries, 1)]
+
+    # Hydraulic conductivity
+    self.k = Function(self.V_cg)
     self.k_func = Function(self.V_cg)
+        
     # If we get a hydraulic conductivity expression or function use it
     if 'k' in self.model_inputs:
-      self.k = self.model_inputs['k']
-      # If the conductivity is an expression project it
-      if isinstance(self.k, dolfin.Expression):
-        self.k_func.assign(project(self.k, self.V_cg))
-      else :
-        # If it's a function then just assign it
-        self.k_func.assign(self.k)
+      self.assign_var('k', self.k, self.k_func)
     else :
-      # Otherwise use some constant conductivity
+      # Otherwise use the default constant conductivity 
       self.k = Function(self.V_cg)
       self.k.interpolate(Constant(self.pcs['k']))
       self.k_func.assign(self.k)
@@ -89,9 +87,9 @@ class SheetModel():
       self.newton_params = self.model_inputs['newton_params']
     else :
       prm = NonlinearVariationalSolver.default_parameters()
-      prm['newton_solver']['relaxation_parameter'] = 1.
-      prm['newton_solver']['relative_tolerance'] = 3e-6
-      prm['newton_solver']['absolute_tolerance'] = 1e-3
+      prm['newton_solver']['relaxation_parameter'] = 1.0
+      prm['newton_solver']['relative_tolerance'] = 1e-4
+      prm['newton_solver']['absolute_tolerance'] = 1e-4
       prm['newton_solver']['error_on_nonconvergence'] = False
       prm['newton_solver']['maximum_iterations'] = 25
       
@@ -102,14 +100,16 @@ class SheetModel():
     if 'opt_params' in self.model_inputs:
       self.opt_params = self.model_inputs['opt_params']
     else:
-      self.opt_params = {'tol' : 2e-8, 'scale' : 150.0}
+      self.opt_params = {'tol' : 0.5e-7, 'scale' : 15.0}
 
     # If the initial time is specified then use it, otherwise use the default
     # initial time of 0
+
     # Current time
     self.t = 0.0
     if 't0' in self.model_inputs:
       self.t = self.model_inputs['t0']
+
 
     ### Set up a few more things we'll need
 
@@ -123,9 +123,10 @@ class SheetModel():
     self.pfo = Function(self.V_cg)
     
     
-    
     ### Output files
     
+    # Output directory
+    self.out_dir = self.model_inputs['out_dir']
     self.h_out = File(self.out_dir + "h.pvd")
     self.phi_out = File(self.out_dir + "phi.pvd")
     self.pfo_out = File(self.out_dir + "pfo.pvd")
@@ -194,24 +195,6 @@ class SheetModel():
       File(in_dir + "u_b.xml") >> u_b 
       self.model_inputs['u_b'] = u_b
       
-    # Potential at 0 pressure
-    if not 'phi_m' in self.model_inputs:
-      phi_m = Function(self.V_cg)
-      File(in_dir + "phi_m.xml") >> phi_m
-      self.model_inputs['phi_m'] = phi_m
-      
-    # Potential at overburden pressure
-    if not 'phi_0' in self.model_inputs:
-      phi_0 = Function(self.V_cg)
-      File(in_dir + "phi_0.xml") >> phi_0
-      self.model_inputs['phi_0'] = phi_0
-      
-    # Ice overburden pressure
-    if not 'p_i' in self.model_inputs:
-      p_i = Function(self.V_cg)
-      File(in_dir + "p_i.xml") >> p_i
-      self.model_inputs['p_i'] = p_i
-      
     # Boundary facet function
     if not 'boundaries' in self.model_inputs:
       boundaries = FacetFunction('size_t', self.mesh)
@@ -253,9 +236,7 @@ class SheetModel():
     to_write = set(to_write)
     if len(to_write) == 0:
       self.h_out << self.h
-      self.h_out << self.h
       self.pfo_out << self.pfo
-      self.u_out << self.phi_solver.u
     else:
       if 'h' in to_write:
         self.h_out << self.h
@@ -282,7 +263,6 @@ class SheetModel():
     if len(to_write) == 0:
       File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
       File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
-      #File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
     else :
       if 'h' in to_write:
         File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
@@ -302,21 +282,49 @@ class SheetModel():
     
   
   # Updates the melt rate function
-  def update_m(self, new_m):
+  def set_m(self, new_m):
     self.m.assign(new_m)
     self.m_func.assign(new_m)
     
   
   # Update sliding speed
-  def update_u_b(self, new_u_b):
+  def set_u_b(self, new_u_b):
     self.u_b.assign(new_u_b)
     self.u_b_func.assign(new_u_b)
     
     
   # Updates the hydraulic conductivity
-  def update_k(self, new_k):
+  def set_k(self, new_k):
     self.k.assign(new_k)
     self.k_func.assign(new_k)
+    
+  
+  # Some variables need to be functions for writing to a file or other reasons.
+  # This function takes in a variable that could be either a function or expression
+  # and assigns it to a function form of the variable (var_func)
+  def assign_var_func(self, var, var_func):
+    if isinstance(var, dolfin.Expression):
+        var_func.assign(project(var, self.V_cg))
+    else :
+        var_func.assign(var)
+   
+   
+  # Assigns a variable that could be an expression or a function. Name is the 
+  # index in the model_inputs dictionary. var is the variable to assign to. 
+  # var_func is a function form of the variable      
+  def assign_var(self, name, var, var_func):
+    input_var = self.model_inputs[name]
+    
+    if isinstance(input_var, dolfin.Expression):
+        # If the input variable is an expression, we need to project it to 
+        # get a function
+        var = input_var
+        var_func.assign(project(input_var, self.V_cg))
+    else :
+        # If the input variable is a function, then we'll copy it rather than
+        # use the original function to prevent unwanted metaphysical linkage
+        var.assign(input_var)
+        var_func.assign(input_var)
     
     
   # Updates the potentially time dependent expressions (m, u_b, k)

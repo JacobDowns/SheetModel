@@ -2,6 +2,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from scipy.integrate import ode
 from dolfin import MPI, mpi_comm_world
+from colored import fg, attr
 
 """Solves ODE for the sheet height h with phi fixed."""
 
@@ -59,10 +60,16 @@ class HSolver():
 
   # Step the gap height h forward by dt
   def step(self, dt):
+    # Use the current solution for h as the initial condition for the ODE solver
+    # for this step. Normally, we could just use the solution from the previous
+    # time step, but this is important if we want to reset the model (say manually
+    # assign a different h)
+    self.ode_solver.y[:] = self.model.h.vector().array()
+    
     if self.MPI_rank == 0:
-      print "Solving for h..."
+      print ('%sSolving for h... %s' % (fg(10), attr(0)))
       
-    # Step h and S forward
+    # Step h 
     self.ode_solver.integrate(self.model.t + dt)
 
     # Retrieve values from the ODE solver    
@@ -70,6 +77,6 @@ class HSolver():
     self.model.h.vector().apply("insert")
     
     if self.MPI_rank == 0:
-      print "Done."
+      print ('%sDone. %s' % (fg(10), attr(0)))
   
  
