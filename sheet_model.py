@@ -257,25 +257,27 @@ class SheetModel():
         self.k_out << self.k_func
 
 
-  # Write out xml checkpoint flies for h and phi
-  def write_xmls(self, to_write = []):
+  # Write out xml checkpoint flies for h and phi. to_write is a list of the fields
+  # to output. label is simply a way to keep track of which file is which (could
+  # be an index or a time or something)
+  def write_xmls(self, to_write = [], label = None):
     to_write = set(to_write)
-    if len(to_write) == 0:
-      File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
-      File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
-    else :
-      if 'h' in to_write:
-        File(self.check_dir + "h_" + str(self.check_index) + ".xml") << self.h
-      if 'phi' in to_write:
-        File(self.check_dir + "phi_" + str(self.check_index) + ".xml") << self.phi
-      if 'u' in to_write:
-        File(self.check_dir + "u_" + str(self.check_index) + ".xml") << self.phi_solver.u
-      if 'u_b' in to_write:
-        File(self.check_dir + "u_b_" + str(self.check_index) + ".xml") << self.u_b_func
-      if 'k' in to_write:
-        File(self.check_dir + "k_" + str(self.check_index) + ".xml") << self.k_func
-      if 'pfo' in to_write:
-        File(self.check_dir + "pfo_" + str(self.check_index) + ".xml") << self.pfo
+    
+    if not label:
+      label = self.check_index
+    
+    if 'h' in to_write:
+      File(self.check_dir + "h_" + str(label) + ".xml") << self.h
+    if 'phi' in to_write:
+      File(self.check_dir + "phi_" + str(label) + ".xml") << self.phi
+    if 'u' in to_write:
+      File(self.check_dir + "u_" + str(label) + ".xml") << self.phi_solver.u
+    if 'u_b' in to_write:
+      File(self.check_dir + "u_b_" + str(label) + ".xml") << self.u_b_func
+    if 'k' in to_write:
+      File(self.check_dir + "k_" + str(label) + ".xml") << self.k_func
+    if 'pfo' in to_write:
+      File(self.check_dir + "pfo_" + str(label) + ".xml") << self.pfo
         
     # Increment the checkpoint index
     self.check_index += 1
