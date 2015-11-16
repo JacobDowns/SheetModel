@@ -13,7 +13,7 @@ from constants import *
 #from pylab import *
 
 # Model input directory
-in_dir = "inputs_high_melt/"
+in_dir = "inputs_low_melt/"
 # Output directory
 out_dir = "out_low_melt/"
 # Checkpoint directory
@@ -32,13 +32,14 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 h_init = Function(V_cg)
 h_init.interpolate(Constant(0.05))
 
-# Distributed melt function
+# Distributed melt function (low melt)
 m = Function(V_cg)
 File(in_dir + "m.xml") >> m
 
 # Moulin melt function
 m_moulin = Function(V_cg)
 File(in_dir + "m_moulin.xml") >> m_moulin
+# Cut the moulin melt rate in half
 m_moulin = project(m_moulin * 0.5, V_cg)
 
 # Sliding speed
