@@ -15,7 +15,7 @@ from constants import *
 # Model input directory
 in_dir = "inputs_high_melt/"
 # Output directory
-out_dir = "out_high_melt1/"
+out_dir = "out_high_melt/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -30,7 +30,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-h_init.interpolate(Constant(0.05))
+File(in_dir + "h_steady1.xml") >> h_init
 
 # Distributed melt function
 m = Function(V_cg)
@@ -49,14 +49,13 @@ spm = spy / 12.0
 
 # Function that reduces melt to 0 over time
 def m_scale(t):
-  # Keep the melt steady for 3 months
-  if t <= 3.0 * spm:
+  # Keep the melt steady for 2 months
+  if t <= 2.0 * spm:
     return 1.0
   # After 3 months decrease melt
-  t = t - 3.0 * spm  
+  t = t - 2.0 * spm  
   
-  return 1.0 / (1.0 + e**(2e-6 * (t - 3.0 * spm)))
-  
+  return 1.0 / (1.0 + e**(2e-6 * (t - 2.0 * spm)))
   
 # Create a function that scales k proportionally to m
 
@@ -72,12 +71,12 @@ b = 0.0
 def k_scale(t):
   return a * m_scale(t - b)
   
-
 # Create a function that scale u_b down to a maximum of 80 (m/a) in winter
 c = (80.0 / spy) / u_b.vector().max()
 def u_b_scale(t):
   return -m_scale(t) * (c - 1.0) + c
 
+t0 = 2.0 * spm
 
 # Newton solver params
 prm = NonlinearVariationalSolver.default_parameters()
@@ -93,6 +92,7 @@ model_inputs['h_init'] = h_init
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
 model_inputs['m'] = m_moulin
+model_inputs['t0'] = t0
 model_inputs['constants'] = pcs
 
 # Create the sheet model
@@ -110,7 +110,15 @@ dt = 60.0 * 60.0 * 8.0
 # Irataion count
 i = 0
 
-while model.t < T:
+while model.t < T:  
+  
+  # Update the melt
+  model.set_m(project(Constant(m_scale(model.t)) * m_moulin, V_cg))
+  # Update the conductivity
+  model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), V_cg))
+  # Update the sliding speed
+  model.set_u_b(project(Constant(u_b_scale(model.t)) * u_b, V_cg))  
+  
   if MPI_rank == 0: 
     current_time = model.t / spd
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
@@ -126,12 +134,7 @@ while model.t < T:
   if MPI_rank == 0: 
     print
     
-  # Update the melt
-  model.set_m(project(Constant(m_scale(model.t)) * m_moulin, V_cg))
-  # Update the conductivity
-  model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), V_cg))
-  # Update the sliding speed
-  model.set_u_b(project(Constant(u_b_scale(model.t)) * u_b, V_cg))  
+
   
   i += 1
 
