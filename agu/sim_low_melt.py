@@ -46,8 +46,7 @@ m_moulin = project(m_moulin * 0.5, V_cg)
 u_b = Function(V_cg)
 File(in_dir + "u_b.xml") >> u_b 
 
-spy = pcs['spy']
-spm = spy / 12.0
+spm = pcs['spm']
 
 # Function that reduces melt to 0 over time
 def m_scale(t):

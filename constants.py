@@ -5,7 +5,9 @@ pcs = {}
 # Seconds per day
 pcs['spd'] = 60.0 * 60.0 * 24.0
 # Seconds in a year
-pcs['spy'] = 60.0 * 60.0 * 24.0 * 365.0                    
+pcs['spy'] = 60.0 * 60.0 * 24.0 * 365.0              
+# Seconds per month 
+pcs['spm'] = pcs['spy'] / 12.0 
 # Density of water (kg / m^3)
 pcs['rho_w'] = 1000.0  
 # Density of ice (kg / m^3)
@@ -19,7 +21,7 @@ pcs['h_r'] = 0.1
 # Typical spacing between bumps (m)
 pcs['l_r'] = 2.0      
 # Sheet conductivity (m^(7/4) / kg^(1/2))
-pcs['k'] = 1e-2
+pcs['k'] = 5e-3
 # Exponents 
 pcs['alpha'] = 5. / 4.
 pcs['beta'] = 3. / 2.
