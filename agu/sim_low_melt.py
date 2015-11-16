@@ -15,7 +15,7 @@ from constants import *
 # Model input directory
 in_dir = "inputs_high_melt/"
 # Output directory
-out_dir = "out_low_melt1/"
+out_dir = "out_low_melt/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -50,14 +50,13 @@ spm = spy / 12.0
 
 # Function that reduces melt to 0 over time
 def m_scale(t):
-  # Keep the melt steady for 3 months
-  if t <= 3.0 * spm:
+  # Keep the melt steady for 2 months
+  if t <= 2.0 * spm:
     return 1.0
   # After 3 months decrease melt
-  t = t - 3.0 * spm  
+  t = t - 2.0 * spm  
   
-  return 1.0 / (1.0 + e**(2e-6 * (t - 3.0 * spm)))
-  
+  return 1.0 / (1.0 + e**(2e-6 * (t - 2.0 * spm)))
   
 # Create a function that scales k proportionally to m
 
@@ -105,18 +104,25 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 1.5 * spy
+T = 2.0 * spm
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Irataion count
 i = 0
 
 while model.t < T:
+  # Update the melt
+  model.set_m(project(Constant(m_scale(model.t)) * m_moulin, V_cg))
+  # Update the conductivity
+  model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), V_cg))
+  # Update the sliding speed
+  model.set_u_b(project(Constant(u_b_scale(model.t)) * u_b, V_cg))  
+  
   if MPI_rank == 0: 
     current_time = model.t / spd
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
-  model.step(dt)
+  #model.step(dt)
   
   if i % 1 == 0:
     model.write_pvds(['h', 'u_b', 'm', 'pfo', 'k'])
@@ -127,12 +133,7 @@ while model.t < T:
   if MPI_rank == 0: 
     print
     
-  # Update the melt
-  model.set_m(project(Constant(m_scale(model.t)) * m_moulin, V_cg))
-  # Update the conductivity
-  model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), V_cg))
-  # Update the sliding speed
-  model.set_u_b(project(Constant(u_b_scale(model.t)) * u_b, V_cg))  
+  model.t += dt
   
   i += 1
 
