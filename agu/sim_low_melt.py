@@ -122,7 +122,7 @@ while model.t < T:
     current_time = model.t / spd
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
-  #model.step(dt)
+  model.step(dt)
   
   if i % 1 == 0:
     model.write_pvds(['h', 'u_b', 'm', 'pfo', 'k'])
