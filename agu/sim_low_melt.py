@@ -46,6 +46,7 @@ m_moulin = project(m_moulin * 0.5, V_cg)
 u_b = Function(V_cg)
 File(in_dir + "u_b.xml") >> u_b 
 
+spy = pcs['spy']
 spm = pcs['spm']
 
 # Function that reduces melt to 0 over time
@@ -65,14 +66,13 @@ k_min = 5e-5
 # Maximum conductivity
 k_max = 5e-3
 # Scaling parameter
-a = (k_max - k_min) / m.vector().max()
+a = 31220.5955507
 # Parameter that controls lag of conductivity behind melt
 b = 0.0
 
 def k_scale(t):
   return a * m_scale(t - b)
   
-
 # Create a function that scale u_b down to a maximum of 80 (m/a) in winter
 c = (80.0 / spy) / u_b.vector().max()
 def u_b_scale(t):
@@ -104,7 +104,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 2.0 * spm
+T = 1.5 * spy
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Irataion count
@@ -128,12 +128,10 @@ while model.t < T:
     model.write_pvds(['h', 'u_b', 'm', 'pfo', 'k'])
     
   if i % 3 == 0:
-    model.write_xmls(['h', 'pfo', 'phi'])
+    model.write_xmls(['h', 'pfo', 'k', 'u_b'])
   
   if MPI_rank == 0: 
     print
-    
-  model.t += dt
   
   i += 1
 
