@@ -13,9 +13,9 @@ from constants import *
 from pylab import *
 
 # Model input directory
-in_dir = "inputs_low_melt/"
+in_dir = "inputs_high_melt/"
 # Output directory
-out_dir = "out_high_melt1/"
+out_dir = "out_high_melt_steady/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -99,7 +99,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 1.5 * spy
+T = 3.0 * spm
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Irataion count
