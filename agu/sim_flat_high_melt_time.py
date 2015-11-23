@@ -15,7 +15,7 @@ from pylab import *
 # Model input directory
 in_dir = "inputs_flat_bed/"
 # Output directory
-out_dir = "out_flat_bed_reference_time/"
+out_dir = "out_flat_bed_high_melt_time/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
