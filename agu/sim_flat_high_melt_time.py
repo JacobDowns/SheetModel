@@ -69,7 +69,9 @@ def u_b_scale(t):
 m_moulin = Function(V_cg)
 File(in_dir + "m_moulin.xml") >> m_moulin
 
-pcs['k'] = 5e-3
+# Distributed melt
+m = Function(V_cg)
+File(in_dir + "m.xml") >> m
 
 # Newton solver params
 prm = NonlinearVariationalSolver.default_parameters()
