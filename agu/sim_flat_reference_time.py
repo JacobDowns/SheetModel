@@ -29,6 +29,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 # Initial sheet height
 h_init = Function(V_cg)
 h_init.interpolate(Constant(0.05))
+File(in_dir + "h_reference_steady.xml")
 
 # How long it takes for the melt to shut off completely
 shutoff_length = 30.0 * spd
@@ -99,4 +100,3 @@ while model.t < T:
     print
     
   i += 1
-
