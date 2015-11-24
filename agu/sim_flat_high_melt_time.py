@@ -15,7 +15,7 @@ from pylab import *
 # Model input directory
 in_dir = "inputs_flat_bed/"
 # Output directory
-out_dir = "out_flat_bed_high_melt_time/"
+out_dir = "out_flat_bed_high_melt/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -29,7 +29,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-File(in_dir + "h_reference_steady.xml") >> h_init
+File(in_dir + "h_steady_high1.xml") >> h_init
 
 # Sliding speed
 u_b = Function(V_cg)
