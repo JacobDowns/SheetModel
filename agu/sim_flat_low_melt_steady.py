@@ -29,12 +29,6 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 h_init = Function(V_cg)
 h_init.interpolate(Constant(0.05))
 
-# Moulin melt function
-m_moulin = Function(V_cg)
-File(in_dir + "m_moulin.xml") >> m_moulin
-# Cut melt in half
-m_moulin = project(0.5 * m_moulin, V_cg)
-
 # Distributed melt
 m = Function(V_cg)
 File(in_dir + "m.xml") >> m
@@ -61,7 +55,6 @@ model_inputs['mesh'] = mesh
 model_inputs['h_init'] = h_init
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
-model_inputs['m'] = m_moulin
 model_inputs['k'] = k
 model_inputs['constants'] = pcs
 
@@ -74,7 +67,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 90.0 * spd
+T = 100.0 * spd
 # Time step
 dt = 60.0 * 60.0 * 12.0
 # Iteration count
