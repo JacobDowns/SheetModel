@@ -1,5 +1,5 @@
 """
-Default steady state for a flat bed with melt cut in half.
+Default steady state for a flat bed.
 """
 
 import sys
@@ -13,7 +13,7 @@ from constants import *
 # Model input directory
 in_dir = "inputs_flat_bed/"
 # Output directory
-out_dir = "out_flat_bed_low_melt_steady/"
+out_dir = "out_flat_bed_high_melt_steady/"
 # Checkpoint directory
 check_dir = out_dir + "checkpoint/"
 # Process number
@@ -32,14 +32,10 @@ h_init.interpolate(Constant(0.05))
 # Moulin melt function
 m_moulin = Function(V_cg)
 File(in_dir + "m_moulin.xml") >> m_moulin
-# Cut melt in half
-m_moulin = project(0.5 * m_moulin, V_cg)
 
 # Distributed melt
 m = Function(V_cg)
 File(in_dir + "m.xml") >> m
-# Cut melt in half
-m = project(0.5 * m, V_cg)
 
 # Minimum conductivity
 k_min = 5e-5
