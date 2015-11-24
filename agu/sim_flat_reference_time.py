@@ -30,6 +30,8 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 h_init = Function(V_cg)
 File(in_dir + "h_reference_steady.xml") >> h_init
 
+# Seconds per day
+spd = pcs['spd']
 # How long it takes for the melt to shut off completely
 shutoff_length = 30.0 * spd
  
