@@ -30,6 +30,10 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 h_init = Function(V_cg)
 File(in_dir + "h_reference_steady.xml") >> h_init
 
+# Melt rate
+m = Function(V_cg)
+File(in_dir + "m.xml") >> m
+
 # Seconds per day
 spd = pcs['spd']
 # How long it takes for the melt to shut off completely
@@ -78,7 +82,7 @@ i = 0
 while model.t < T:  
   
   # Update the melt
-  model.set_m(project(Constant(m_scale(model.t)) * m_moulin, V_cg))
+  model.set_m(project(Constant(m_scale(model.t)) * m, V_cg))
   
   if MPI_rank == 0: 
     current_time = model.t / spd
