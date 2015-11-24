@@ -29,7 +29,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-File(in_dir + "h_steady_high1.xml") >> h_init
+File(in_dir + "h_steady_high.xml") >> h_init
 
 # Sliding speed
 u_b = Function(V_cg)
@@ -60,14 +60,10 @@ b = 0.0
 def k_scale(t):
   return a * m_scale(t - b)
   
-# Create a function that scale u_b down to a maximum of 80 (m/a) in winter
+# Create a function that scales u_b down to a maximum of 80 (m/a) in winter
 c = (80.0 / spy) / u_b.vector().max()
 def u_b_scale(t):
   return -m_scale(t) * (c - 1.0) + c
-
-# Moulin melt function
-m_moulin = Function(V_cg)
-File(in_dir + "m_moulin.xml") >> m_moulin
 
 # Distributed melt
 m = Function(V_cg)
@@ -86,7 +82,6 @@ model_inputs['mesh'] = mesh
 model_inputs['h_init'] = h_init
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
-model_inputs['m'] = m_moulin
 model_inputs['constants'] = pcs
 
 # Create the sheet model
@@ -109,7 +104,7 @@ i = 0
 while model.t < T:  
   
   # Update the melt
-  model.set_m(project(Constant(m_scale(model.t)) * m_moulin, V_cg))
+  model.set_m(project(Constant(m_scale(model.t)) * m, V_cg))
   # Update the conductivity
   model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), V_cg))
   # Update the sliding speed
