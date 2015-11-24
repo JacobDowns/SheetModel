@@ -56,6 +56,7 @@ model_inputs['h_init'] = h_init
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
 model_inputs['k'] = k
+model_inputs['m'] = m
 model_inputs['constants'] = pcs
 
 # Create the sheet model
