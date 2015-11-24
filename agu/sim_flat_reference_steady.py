@@ -29,11 +29,8 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 h_init = Function(V_cg)
 h_init.interpolate(Constant(0.05))
 
-# Moulin melt function
-m_moulin = Function(V_cg)
-File(in_dir + "m_moulin.xml") >> m_moulin
-
 pcs['k'] = 5e-3
+
 
 # Newton solver params
 prm = NonlinearVariationalSolver.default_parameters()
@@ -48,7 +45,6 @@ model_inputs['mesh'] = mesh
 model_inputs['h_init'] = h_init
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
-model_inputs['m'] = m_moulin
 model_inputs['constants'] = pcs
 
 # Create the sheet model
