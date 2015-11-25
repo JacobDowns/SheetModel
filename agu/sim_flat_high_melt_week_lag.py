@@ -28,7 +28,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-#File(in_dir + "h_high_steady.xml") >> h_init
+File(in_dir + "h_high_steady.xml") >> h_init
 
 # Sliding speed
 u_b = Function(V_cg)
