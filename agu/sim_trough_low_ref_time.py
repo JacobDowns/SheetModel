@@ -28,7 +28,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-File("h_low_ref_steady.xml") >> h_init
+File(in_dir + "h_low_ref_steady.xml") >> h_init
 
 # Melt input
 m = Function(V_cg)
