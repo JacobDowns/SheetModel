@@ -8,7 +8,7 @@ from numpy import *
 """ Generates a steady state for diurnal simulations."""
 
 # Model input directory
-in_dir = "inputs_sliding_law/"
+in_dir = "inputs_trough1/"
 # Output directory
 out_dir = "out_diurnals_steady/"
 # Checkpoint directory
@@ -35,13 +35,15 @@ File(in_dir + "boundaries.xml") >> boundaries
 phi_m = Function(V_cg)
 File(in_dir + "phi_m.xml") >> phi_m
 
-# Driving stress
-tau_b = Function(V_cg)
-File(in_dir + "tau_b.xml") >> tau_b
-
 # Load point source melt function 
 m = Function(V_cg) 
 File(in_dir + "m_point2.xml") >> m
+
+u_b = Function(V_cg)
+File(in_dir + "u_b.xml") >> u_b
+
+plot(u_b * pcs['spy'], interactive = True)
+quit()
 
 # Enforce 0 pressure bc at margin
 bc = DirichletBC(V_cg, phi_m, boundaries, 1)
@@ -84,9 +86,6 @@ dt = 60.0 * 60.0 * 4.0
 i = 0
 # Seconds per year
 spy = pcs['spy']
-# Somewhat arbitrary constant for sliding law
-C = Constant(1e-9 / spy)
-u_b_reg = Constant(1000.0)
 
 while model.t < T:
   if MPI_rank == 0: 
@@ -103,8 +102,5 @@ while model.t < T:
   
   if MPI_rank == 0: 
     print
-    
-  # Update the sliding velocity
-  model.update_u_b(project(C * (tau_b**3 / (model.N + u_b_reg)), V_cg))
   
   i += 1

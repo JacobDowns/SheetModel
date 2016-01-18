@@ -10,7 +10,7 @@ from dolfin import MPI, mpi_comm_world
 sys.path.insert(0, '../')
 from sheet_model import *
 from constants import *
-#from pylab import *
+from pylab import *
 
 # Model input directory
 in_dir = "inputs_low_melt/"
@@ -52,19 +52,21 @@ spm = pcs['spm']
 # Function that reduces melt to 0 over time
 def m_scale(t):
   # Keep the melt steady for 2 months
-  if t <= 2.0 * spm:
+  if t <= 3.0 * spm:
     return 1.0
   # After 3 months decrease melt
-  t = t - 2.0 * spm  
+  t = t - 3.0 * spm  
   
   return 1.0 / (1.0 + e**(2e-6 * (t - 2.0 * spm)))
   
+ts = linspace(0.0, 1.5 * spy)
+ms = array(map(m_scale, ts))
+plot(ts / spm, ms)
+show()
+quit() 
 # Create a function that scales k proportionally to m
-
 # Minimum conductivity
 k_min = 5e-5
-# Maximum conductivity
-k_max = 5e-3
 # Scaling parameter
 a = 31220.5955507
 # Parameter that controls lag of conductivity behind melt

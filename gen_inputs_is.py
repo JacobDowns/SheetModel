@@ -1,6 +1,6 @@
 """
 This script generates all fields such as ice thickness, bed elevation, and melt
-needed to run the model for an ice sheet with a sloped bed.
+needed to run the model for Issunguata Sermia.
 """
 
 from dolfin import *

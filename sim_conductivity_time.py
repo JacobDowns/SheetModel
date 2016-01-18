@@ -66,13 +66,6 @@ def k_time(t):
   kval = max(k1, k2) * ((max_k - min_k) / M) + min_k
   return kval   
   
-ts = linspace(0.0, spy, 1000)
-ks = array(map(k_time, ts))
-plot(ts, ks)
-show()
-quit()
-
-  
 # Load initial melt function
 m = Function(V_cg) 
 File(in_dir + "m.xml") >> m
@@ -84,14 +77,13 @@ m1.assign(m)
 u_b = Function(V_cg)
 File(in_dir + "u_b_steady.xml") >> u_b
 
+# initial conductivity
+k = Function(V_cg)
+k.interpolate(Constant(max_k))
+
 # Enforce 0 pressure bc at margin
 bc = DirichletBC(V_cg, phi_m, boundaries, 1)
 
-# Use a slightly lower conductivity than the default
-
-pcs['k'] = 5e-3
-# Bump height
-pcs['h_r'] = 0.1
 
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0

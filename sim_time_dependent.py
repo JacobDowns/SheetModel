@@ -82,11 +82,11 @@ while model.t < T:
   
   model.step(dt)
   
-  if i % 3 == 0:
-    model.write_pvds()
+  if i % 1 == 0:
+    model.write_pvds(set(['phi', 'pfo', 'h', 'm']))
     
   if i % 3 == 0:
-    model.write_xmls()
+    model.write_xmls(set(['phi', 'h']))
   
   if MPI_rank == 0: 
     print

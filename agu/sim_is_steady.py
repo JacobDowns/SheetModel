@@ -44,8 +44,6 @@ prm['newton_solver']['absolute_tolerance'] = 1e-5
 prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 25
 
-pcs['k'] = 5e-3
-
 model_inputs = {}
 model_inputs['mesh'] = mesh
 model_inputs['h_init'] = h_init

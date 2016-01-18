@@ -50,14 +50,12 @@ File(in_dir + "m_point2.xml") >> m
 # Use a slightly lower conductivity than the default
 pcs['k'] = 5e-3
 
-
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
 prm['newton_solver']['relative_tolerance'] = 1e-5
 prm['newton_solver']['absolute_tolerance'] = 1e-5
 prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 25
-
 
 model_inputs = {}
 model_inputs['mesh'] = mesh

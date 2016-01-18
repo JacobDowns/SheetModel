@@ -46,6 +46,8 @@ m = Expression('(1.0 + (4.0 * (60000.0 - x[0]) / 60000.0)) * 0.5 * (cos(((2.0 * 
 # 200 - 50 meters summer to 150 - 0 meters winter
 u_b = Expression("(25.0 * (cos(((2.0 * pi) / spy) * t) + 1.0) + 150.0 * (60000.0 - x[0]) / 60000.0) / spy", pi = pi, spy = spy, t = 0.0)
   
+print u_b.vector().array()
+quit()
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
 prm['newton_solver']['relative_tolerance'] = 1e-5

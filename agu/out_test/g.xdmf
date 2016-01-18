@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <Domain>
+    <Grid Name="TimeSeries" GridType="Collection" CollectionType="Temporal">
+      <Time TimeType="List">
+        <DataItem Format="XML" Dimensions="3"> 1 2 3</DataItem>
+      </Time>
+      <Grid Name="grid_1" GridType="Uniform">
+        <Topology NumberOfElements="41603" TopologyType="Triangle">
+          <DataItem Format="HDF" Dimensions="41603 3">g.h5:/Mesh/0/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Format="HDF" Dimensions="21141 2">g.h5:/Mesh/0/coordinates</DataItem>
+        </Geometry>
+        <Attribute Name="g" AttributeType="Scalar" Center="Node">
+          <DataItem Format="HDF" Dimensions="21141 1">g.h5:/VisualisationVector/0</DataItem>
+        </Attribute>
+      </Grid>
+      <Grid Name="grid_2" GridType="Uniform">
+        <Topology NumberOfElements="41603" TopologyType="Triangle">
+          <DataItem Format="HDF" Dimensions="41603 3">g.h5:/Mesh/1/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Format="HDF" Dimensions="21141 2">g.h5:/Mesh/1/coordinates</DataItem>
+        </Geometry>
+        <Attribute Name="g" AttributeType="Scalar" Center="Node">
+          <DataItem Format="HDF" Dimensions="21141 1">g.h5:/VisualisationVector/1</DataItem>
+        </Attribute>
+      </Grid>
+      <Grid Name="grid_3" GridType="Uniform">
+        <Topology NumberOfElements="41603" TopologyType="Triangle">
+          <DataItem Format="HDF" Dimensions="41603 3">g.h5:/Mesh/2/topology</DataItem>
+        </Topology>
+        <Geometry GeometryType="XY">
+          <DataItem Format="HDF" Dimensions="21141 2">g.h5:/Mesh/2/coordinates</DataItem>
+        </Geometry>
+        <Attribute Name="g" AttributeType="Scalar" Center="Node">
+          <DataItem Format="HDF" Dimensions="21141 1">g.h5:/VisualisationVector/2</DataItem>
+        </Attribute>
+      </Grid>
+    </Grid>
+  </Domain>
+</Xdmf>

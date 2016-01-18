@@ -7,7 +7,7 @@ a low melt rate.
 import sys
 from dolfin import *
 import numpy as np
-sys.path.insert(0, '/home/jake/schoof/')
+sys.path.insert(0, '../')
 from constants import *
 
 # Directory to write model inputs
@@ -19,6 +19,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 m = project(Expression("(0.5 + (2.0 * (60000.0 - x[0]) / 60000.0)) / 31536000.0"), V_cg)
 File(out_dir + "m.xml") << m
 File(out_dir + "m.pvd") << m
+
 
 # Sliding speed
 u_b = project(Expression("(50.0 + 150.0 * (60000.0 - x[0]) / 60000.0) / 31536000.0"), V_cg)

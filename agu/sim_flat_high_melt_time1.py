@@ -10,7 +10,6 @@ from dolfin import MPI, mpi_comm_world
 sys.path.insert(0, '../')
 from sheet_model import *
 from constants import *
-from pylab import *
 
 # Model input directory
 in_dir = "inputs_flat_bed/"
@@ -29,11 +28,17 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Initial sheet height
 h_init = Function(V_cg)
-File(in_dir + "h_high_steady.xml") >> h_init
+#File(in_dir + "h_high_steady.xml") >> h_init
 
 # Sliding speed
 u_b = Function(V_cg)
 File(in_dir + "u_b.xml") >> u_b
+
+m = Function(V_cg)
+File(in_dir + "m.xml") >> m
+
+plot(m * pcs['spy'], interactive = True)
+quit()
 
 # Seconds per year
 spy = pcs['spy']

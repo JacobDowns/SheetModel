@@ -1,6 +1,6 @@
 """
 Runs the trough to a steady state (runs with constant melt input for 3 months),
-then reduces melt input. Conductivity is scaled in the same way as melt.
+then reduces melt input. 
 """
 
 import sys
@@ -66,7 +66,6 @@ def k_scale(t):
 c = (80.0 / spy) / u_b.vector().max()
 def u_b_scale(t):
   return -m_scale(t) * (c - 1.0) + c
-
 
 # Newton solver params
 prm = NonlinearVariationalSolver.default_parameters()

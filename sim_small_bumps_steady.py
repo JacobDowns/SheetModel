@@ -5,6 +5,10 @@ from constants import *
 from dolfin import MPI, mpi_comm_world
 from numpy import *
 
+"""
+Trough simulation with a small 5cm max bump height. Runs to a steady state.
+"""
+
 # Model input directory
 in_dir = "inputs_sliding_law/"
 # Output directory

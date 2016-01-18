@@ -59,7 +59,7 @@ model = SheetModel(model_inputs, in_dir)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 100.0 * spd
+T = 75.0 * spd
 # Time step
 dt = 60.0 * 60.0
 # Irataion count
