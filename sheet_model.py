@@ -8,16 +8,40 @@ from h_solver import *
 
 class SheetModel():
 
-  def __init__(self, model_inputs, in_dir = None):
+  def __init__(self, model_inputs):
 
     ### Initialize model inputs
 
-    self.mesh = model_inputs['mesh']
-    self.V_cg = FunctionSpace(self.mesh, "CG", 1)
+    # Dictionary of model inputs
     self.model_inputs = model_inputs
     
-    # If there is a dictionary of physical constants specified, use it. 
-    # Otherwise use the defaults. 
+    # If the model is initialized in start mode, then create a new output file
+    if not 'mode' in model_inputs or model_inputs['mode'] == 'start' :
+
+      # Get the output file name if there is one
+      out_name = 'out'
+      if 'output_file' in model_inputs:
+        out_name = model_inputs['output_file']
+        
+      # Load the input file 
+      self.input_file = HDF5File(mesh.mpi_comm(), self.model_inputs['input_file'], 'r')
+      # Create an output file 
+      self.ouput_file = HDF5File(mesh.mpi_comm(), out_name + ".hdf5", 'w')
+    else :
+      # If not initialized in start mode, then we assume that the user wants to 
+      # continue an existing simulation
+    
+      # Load the input file in append mode
+      self.input_file = HDF5File(mesh.mpi_comm(), self.model_inputs['input_file'], 'a')
+      # The output file will be the same
+      self.ouput_file = self.input_file
+    
+    # Load the mesh
+    self.mesh = self.input_file.read(mesh, "mesh", False)    
+    self.V_cg = FunctionSpace(self.mesh, "CG", 1)
+
+    # If there is a dictionary of physical constants specified in model_inputs, 
+    # use it. Otherwise use the defaults. 
     if 'constants' in self.model_inputs :
       self.pcs = self.model_inputs['constants']
     else :
@@ -28,13 +52,14 @@ class SheetModel():
     if in_dir:
       self.load_inputs(in_dir)
       
+      
     # Ice thickness    
     self.H = Function(self.V_cg)
-    self.H.assign(self.model_inputs['H'])
+    self.io_file.read(self.H, "H")
     
     # Bed elevation     
     self.B = Function(self.V_cg)
-    self.B.assign(self.model_inputs['B'])
+    self.io_file.read(self.B, "B")
     
     # Basal sliding speed
     self.u_b = Function(self.V_cg)
@@ -47,7 +72,8 @@ class SheetModel():
     self.assign_var('m', self.m, self.m_func)
     
     # Cavity gap height
-    self.h = self.model_inputs['h_init']
+    self.h = Function(self.V_cg)
+    self.io_file.
     # Potential at 0 pressure
     self.phi_m = project(pcs['rho_w'] * pcs['g'] * self.B, self.V_cg)
     # Ice overburden pressure
@@ -171,17 +197,6 @@ class SheetModel():
   # Load all model inputs from a directory except for the mesh and initial 
   # conditions on h, h_w, and phi
   def load_inputs(self, in_dir):
-    # Bed
-    if not 'B' in self.model_inputs:
-      B = Function(self.V_cg)
-      File(in_dir + "B.xml") >> B
-      self.model_inputs['B'] = B
-      
-    # Ice thickness
-    if not 'H' in self.model_inputs:
-      H = Function(self.V_cg)
-      File(in_dir + "H.xml") >> H
-      self.model_inputs['H'] = H
       
     # Melt
     if not 'm' in self.model_inputs:
@@ -311,11 +326,15 @@ class SheetModel():
         var_func.assign(var)
    
    
-  # Assigns a variable that could be an expression or a function. Name is the 
-  # index in the model_inputs dictionary. var is the variable to assign to. 
-  # var_func is a function form of the variable      
+  # Assigns a variable that could be an expression or a function. The function
+  # first checks the model_inputs dictionary, then the hdf5 io file for the variable 
   def assign_var(self, name, var, var_func):
-    input_var = self.model_inputs[name]
+    # Look for the variable in the model_inputs directory
+    if 'name' in self.model_inputs:
+      input_var = self.model_inputs[name]
+    else:
+      # Otherwise get it from the io_file
+      input_var = self.io_file[name]
     
     if isinstance(input_var, dolfin.Expression):
         # If the input variable is an expression, we need to project it to 

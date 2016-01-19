@@ -1,43 +1,78 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Sep 30 15:57:49 2015
-
-@author: jake
-"""
-
-"""
 from dolfin import *
-#from dolfin_adjoint import *
+from dolfin_adjoint import *
+#from sheet_model import *
+from constants import *
+from dolfin import MPI, mpi_comm_world
 
-in_dir = "inputs_slope/"
-mesh = Mesh(in_dir + "mesh.xml") 
-V = FunctionSpace(mesh, "CG", 1)
 
-u0 = Expression('sin(2.0)')
+# Model input directory
+in_dir = "inputs_is/"
+# Output directory
+out_dir = "out_is/"
+# Checkpoint directory
+check_dir = out_dir + "checkpoint/"
+# Process number
+MPI_rank = MPI.rank(mpi_comm_world())
 
-print type(u0)
 
-if hasattr(u0, 't'):
- print "has t"
+# Load mesh and create function spaces
+mesh = Mesh(in_dir + "mesh.xml")
+V_cg = FunctionSpace(mesh, "CG", 1)
 
-if isinstance(u0, dolfin.Expression):
-  print "stuff"
+run_name = "test"
+f = HDF5File(mesh.mpi_comm(), run_name + ".hdf5", 'w')
+#f.write(mesh, "mesh")
 
-plot(project(u0, V), interactive = True)
 
-print type(u0)
+h = Function(V_cg)
+
+h.interpolate(Constant(1.0))
+f.write(h, "h", 1.0)
+
+h.interpolate(Constant(2.0))
+f.write(h, "h", 2.0)
+
+a = "a" + 1
+
+h.interpolate(Constant(3.0))
+f.write(h, "h", 3.0)
+
+h.interpolate(Constant(4.0))
+
+attrs = f.attributes("h")
+
+
+
+"""
+f = HDF5File(mpi_comm_world(), "test.hdf5", 'r')
+
+# Load mesh
+mesh = Mesh()
+f.read(mesh, "mesh", False)
+
+
+# Load hs
+try :
+  print f.attributes("h")
+except:
+  print "sfas"
+
+print dir(f)
+
 quit()
 
-for t in linspace(0.0, 1e6, 1):
-  u0.t  = t
-  
-""" 
 
-from pylab import *
 
-spy = 60.0 * 60.0 * 24.0 * 365.0
-ts = linspace(0.0, spy, 1000)
-ms = 2.0 - cos( ((2.0 * pi) / spy) * ts)
+#plot(mesh, interactive = True)
 
-plot(ts, ms, 'ro-')
-show()
+count = f.attributes("h")['count']
+
+V_cg = FunctionSpace(mesh, "CG", 1)
+h = Function(V_cg)
+f.read(h, "h/vector_" + str(count - 1))
+
+plot(h, interactive = True) 
+
+attr = f.attributes("h/vector_" + str(count - 1))"""
+
+
