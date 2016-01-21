@@ -4,4 +4,6 @@
 *.pvd
 *.vtu
 *.pvtu
-
+*.h5
+*.hdf5
+*.xdmf

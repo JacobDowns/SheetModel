@@ -19,11 +19,11 @@ f.write(mesh, "mesh")
 
 # Melt
 m = project(Expression("(1.0 + (4.0 * (60000.0 - x[0]) / 60000.0)) / 31536000.0"), V_cg)
-f.write(m, "m")
+f.write(m, "m_0")
 
 # Sliding speed
 u_b = project(Expression("(50.0 + 250.0 * (60000.0 - x[0]) / 60000.0) / 31536000.0"), V_cg)
-f.write(u_b, "u_b")
+f.write(u_b, "u_b_0")
 
 
 ### Bed and surface functions
@@ -70,4 +70,4 @@ f.write(boundaries, "boundaries")
 # Initial sheet height
 h = Function(V_cg)
 h.interpolate(Constant(0.05))
-f.write(h, "h", 0.0)
+f.write(h, "h_0")
