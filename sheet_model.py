@@ -199,12 +199,12 @@ class SheetModel():
     ### Output files
     
     # Output directory
-    self.h_out = File(self.out_dir + "h.xdmf")
-    self.phi_out = File(self.out_dir + "phi.xdmf")
-    self.pfo_out = File(self.out_dir + "pfo.xdmf")
+    self.h_out = File(self.out_dir + "h.pvd")
+    self.phi_out = File(self.out_dir + "phi.pvd")
+    self.pfo_out = File(self.out_dir + "pfo.pvd")
     self.m_out = File(self.out_dir + "m.xdmf")
-    self.u_b_out = File(self.out_dir + "u_b.xdmf")
-    self.k_out = File(self.out_dir + "k.xdmf")
+    self.u_b_out = File(self.out_dir + "u_b.pvd")
+    self.k_out = File(self.out_dir + "k.pvd")
     
 
     ### Create the solver objects
@@ -296,8 +296,8 @@ class SheetModel():
     self.update_pfo()
     
   
-  # Write fields to xdmf files for visualization
-  def write_xdmfs(self, to_write = []):
+  # Write fields to pvd files for visualization
+  def write_pvds(self, to_write = []):
     to_write = set(to_write)
     if len(to_write) == 0:
       self.h_out << self.h
