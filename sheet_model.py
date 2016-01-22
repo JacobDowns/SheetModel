@@ -134,8 +134,6 @@ class SheetModel():
     except :
       pass
     
-    print continue_simulation 
-    
     if continue_simulation : 
       # Continue an existing simulation
       
@@ -164,7 +162,7 @@ class SheetModel():
       # Check if there's a given name for the checkpoint file
       checkpoint_file = 'out'
       if 'checkpoint_file' in model_inputs:
-        checkpoint_file = model_inputs['checkpoint_file']
+        checkpoint_file = model_inputs['checkpoint_file'] + '/'
       
       # Create a new ouput file for checkpointing.
       self.output_file = HDF5File(mpi_comm_world(), self.out_dir + checkpoint_file + ".hdf5", 'w')
