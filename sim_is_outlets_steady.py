@@ -88,6 +88,6 @@ while model.t < T:
   if MPI_rank == 0: 
     print
     
-  plot(model.pfo, interactive = True)
+  #plot(model.pfo, interactive = True)
     
   i += 1
