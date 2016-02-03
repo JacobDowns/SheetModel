@@ -14,7 +14,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Output directory
 out_dir = 'out_is_outlets_steady'
 # Input file
-input_file = 'inputs/inputs_is.hdf5'
+input_file = 'inputs/inputs_is_steady.hdf5'
 # Load the input file
 inputs = HDF5File(mpi_comm_world(), input_file, 'r')
 
@@ -25,8 +25,8 @@ inputs.read(mesh, "mesh", False)
 V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Load potential at 0 pressure
-phi_m = Function(V_cg)
-inputs.read(phi_m, "phi_m")
+B = Function(V_cg)
+inputs.read(B, "B")
 
 def outlet_boundary(x, on_boundary):
   # These two outlet points are based on Google Earth -- places where it looks
@@ -40,7 +40,7 @@ def outlet_boundary(x, on_boundary):
   cond2 = (abs(x[0] - out2_x) < 150.0) and (abs(x[1] - out2_y) < 150.0)
   return cond1 or cond2
 
-bc = DirichletBC(V_cg, phi_m, outlet_boundary, "pointwise")
+bc = DirichletBC(V_cg, pcs['rho_w'] * pcs['g'] * B, outlet_boundary, "pointwise")
 
 
 ### Initialize model
