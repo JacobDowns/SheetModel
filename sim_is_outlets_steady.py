@@ -24,6 +24,10 @@ mesh = Mesh()
 inputs.read(mesh, "mesh", False)    
 V_cg = FunctionSpace(mesh, "CG", 1)
 
+# Load potential at 0 pressure
+phi_m = Function(V_cg)
+inputs.read(phi_m, "phi_m")
+
 def outlet_boundary(x, on_boundary):
   # These two outlet points are based on Google Earth -- places where it looks
   # like water is flowing out
@@ -36,7 +40,7 @@ def outlet_boundary(x, on_boundary):
   cond2 = (abs(x[0] - out2_x) < 150.0) and (abs(x[1] - out2_y) < 150.0)
   return cond1 or cond2
 
-bc = DirichletBC(V_cg, 0.0, outlet_boundary, "pointwise")
+bc = DirichletBC(V_cg, phi_m, outlet_boundary, "pointwise")
 
 
 ### Initialize model
