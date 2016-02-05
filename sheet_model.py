@@ -5,7 +5,7 @@ from constants import *
 from phi_solver import *
 from h_solver import *
 
- parameters["adjoint"]["stop_annotating"]
+parameters["adjoint"]["stop_annotating"]
 
 """ Wrapper class for Schoof's constrained sheet model."""
 
