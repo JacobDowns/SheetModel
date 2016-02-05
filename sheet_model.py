@@ -5,6 +5,8 @@ from constants import *
 from phi_solver import *
 from h_solver import *
 
+ parameters["adjoint"]["stop_annotating"]
+
 """ Wrapper class for Schoof's constrained sheet model."""
 
 class SheetModel():
@@ -162,7 +164,7 @@ class SheetModel():
       # Check if there's a given name for the checkpoint file
       checkpoint_file = 'out'
       if 'checkpoint_file' in model_inputs:
-        checkpoint_file = model_inputs['checkpoint_file'] + '/'
+        checkpoint_file = model_inputs['checkpoint_file']
       
       # Create a new ouput file for checkpointing.
       self.output_file = HDF5File(mpi_comm_world(), self.out_dir + checkpoint_file + ".hdf5", 'w')
