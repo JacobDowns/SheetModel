@@ -14,7 +14,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Output directory
 out_dir = 'out_is_outlets_winter'
 # Input file
-input_file = 'inputs_is_outlets_steady.hdf5'
+input_file = 'inputs/inputs_is_outlets_steady.hdf5'
 # Load the input file
 inputs = HDF5File(mpi_comm_world(), input_file, 'r')
 
@@ -51,7 +51,6 @@ pcs['k'] = 5e-3
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
-model_inputs['checkpoint_file'] = 'outlets_is_winter'
 model_inputs['d_bcs'] = [bc]
 model_inputs['constants'] = pcs
 
