@@ -132,6 +132,8 @@ class PhiSolver(object):
     self.__solve_opt__(tol, scale)
     self.model.update_phi()
     
+    parameters["adjoint"]["stop_annotating"] = True
+    
 
   # Steps the potential forward with h fixed
   def step(self):
@@ -144,7 +146,6 @@ class PhiSolver(object):
     
     # Copy the solution u to phi
     self.model.phi.assign(self.u)    
-    
     self.model.update_phi()
     
     # Check if there is any over or under pressure on this process

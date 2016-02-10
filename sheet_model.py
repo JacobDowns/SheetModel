@@ -5,8 +5,6 @@ from constants import *
 from phi_solver import *
 from h_solver import *
 
-parameters["adjoint"]["stop_annotating"]
-
 """ Wrapper class for Schoof's constrained sheet model."""
 
 class SheetModel():
@@ -112,7 +110,7 @@ class SheetModel():
       prm['newton_solver']['relative_tolerance'] = 1e-4
       prm['newton_solver']['absolute_tolerance'] = 1e-4
       prm['newton_solver']['error_on_nonconvergence'] = False
-      prm['newton_solver']['maximum_iterations'] = 25
+      prm['newton_solver']['maximum_iterations'] = 20
       
       self.newton_params = prm
       
@@ -187,7 +185,7 @@ class SheetModel():
     ### Set up a few more things we'll need
 
     # Potential
-    self.phi = Function(self.V_cg)
+    self.phi = Function(self.V_cg, name = "phi")
     # Effective pressure
     self.N = Function(self.V_cg)
     # Water pressure
