@@ -50,7 +50,7 @@ class PhiSolver(object):
 
     # Unknown 
     u = Function(model.V_cg)
-    u.assign(phi_m)
+    u.assign(phi_m, annotate = False)
     self.u = u
     # Expression for effective pressure in terms of potential
     Nu = phi_0 - u
@@ -73,7 +73,7 @@ class PhiSolver(object):
   
     ### Set up the variational principle
     
-    phi.assign(phi_0)
+    phi.assign(phi_0, annotate = True)
     # Expression for effective pressure
     N = phi_0 - phi
     # Opening term 
@@ -82,8 +82,8 @@ class PhiSolver(object):
     # Define some upper and lower bounds for phi
     self.phi_min = Function(model.V_cg)
     self.phi_max = Function(model.V_cg)
-    self.phi_min.assign(phi_m)
-    self.phi_max.assign(phi_0)
+    self.phi_min.assign(phi_m, annotate = False)
+    self.phi_max.assign(phi_0, annotate = False)
     
     # On Dirichlet boundary conditions set the min and the max to be equal
     for bc in model.d_bcs:
@@ -110,7 +110,7 @@ class PhiSolver(object):
   def solve_pde(self):
     self.__solve_pde__()
     # Copy PDE solution u to model phi
-    self.model.phi.assign(self.u)    
+    self.model.phi.assign(self.u, annotate = False)    
     # Update phi
     self.model.update_phi()
 
@@ -141,11 +141,11 @@ class PhiSolver(object):
     #print('%s' % (fg(231)))
     
     # Solve the PDE with an initial guess of phi_m
-    self.u.assign(self.model.phi_m)
+    self.u.assign(self.model.phi_m, annotate = False)
     self.__solve_pde__()
     
     # Copy the solution u to phi
-    self.model.phi.assign(self.u)    
+    self.model.phi.assign(self.u, annotate = False)    
     self.model.update_phi()
     
     # Check if there is any over or under pressure on this process
