@@ -102,7 +102,7 @@ class PhiSolver(object):
   # Internal function that solves the PDE for u
   def __solve_pde__(self):
     # Solve for potential
-    solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
+    solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params, annotate = False)    
 
     
   # External function that solves PDE for u then copies it to model.phi and updates
