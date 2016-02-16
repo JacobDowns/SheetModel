@@ -1,0 +1,2 @@
+Trough run with IS like melt conditions. 
+dt : 30 minutes
