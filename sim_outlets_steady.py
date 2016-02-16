@@ -29,6 +29,7 @@ def outlet_boundary(x, on_boundary):
   cond2 = (abs(x[0] - 150.0) < 150.0) and (abs(x[1] - 13332.0) < 150.0)
   return cond1 or cond2
 
+
 bc = DirichletBC(V_cg, 0.0, outlet_boundary, "pointwise")
 
 
@@ -41,7 +42,7 @@ model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['checkpoint_file'] = 'outlets_steady'
-model_inputs['d_bcs'] = [bc]
+#model_inputs['d_bcs'] = [bc]
 model_inputs['constants'] = pcs
 
 

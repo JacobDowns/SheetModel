@@ -52,7 +52,7 @@ model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['checkpoint_file'] = 'outlets_is_winter'
-model_inputs['d_bcs'] = [bc]
+#model_inputs['d_bcs'] = [bc]
 model_inputs['constants'] = pcs
 
 

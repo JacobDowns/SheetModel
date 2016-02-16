@@ -31,11 +31,14 @@ spd = pcs['spd']
 # End time
 T = 75.0 * spd
 # Time step
-dt = 60.0 * 60.0 * 1.0
+dt = spd
 # Iteration count
 i = 0
 
-while model.t < T:
+while model.t < T:  
+  # Update the melt
+  model.set_m(project(Constant((model.t / spd) * 1e-10), model.V_cg))
+  
   if MPI_rank == 0: 
     current_time = model.t / spd
     #print "Current Time: " + str(current_time)
@@ -44,13 +47,12 @@ while model.t < T:
   model.step(dt)
   
   if i % 1 == 0:
-    model.write_xdmfs(['pfo', 'h'])
+    model.write_pvds(['pfo', 'h'])
     
   if i % 1 == 0:
-    model.checkpoint()
+    model.checkpoint(['m'])
   
   if MPI_rank == 0: 
     print
     
-  plot(model.h, interactive = True)
   i += 1
