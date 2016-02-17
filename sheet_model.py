@@ -97,7 +97,7 @@ class SheetModel():
       self.d_bcs = [DirichletBC(self.V_cg, self.phi_m, self.boundaries, 1)]
       
       
-    ### Numerical solver parameters
+    ### PDE solver parameters
       
     # If the Newton parameters are specified use them. Otherwise use some
     # defaults
@@ -109,17 +109,43 @@ class SheetModel():
       prm['newton_solver']['relative_tolerance'] = 1e-4
       prm['newton_solver']['absolute_tolerance'] = 1e-4
       prm['newton_solver']['error_on_nonconvergence'] = False
-      prm['newton_solver']['maximum_iterations'] = 20
+      prm['newton_solver']['maximum_iterations'] = 30
       
       self.newton_params = prm
       
+      
+    ### Optimization parameters     
+      
+    # Minimum potential constraint for optimization
+    self.phi_min = Function(self.V_cg)
+    # If the minimum potential is specified, then use it. Normally one should 
+    # probably not do this
+    self.phi_min.assign(self.phi_m)
+    if 'phi_min' in self.model_inputs:
+      self.phi_min.assign(self.model_inputs['phi_min'])
+    
+    # Maximum potential constraint for optimization
+    self.phi_max = Function(self.V_cg)
+    # If the maximum potential is specified, then use it. Normally one should 
+    # probably not do this
+    self.phi_max.assign(self.phi_0)
+    if 'phi_max' in self.model_inputs:
+      self.phi_max.assign(self.model_inputs['phi_max'])
+      
+     # Apply any Dirichlet bcs to the phi_min and phi_max functions
+    for bc in self.d_bcs:
+      bc.apply(self.phi_min.vector())
+      bc.apply(self.phi_max.vector())
+    
     # If optimization parameters are specified use them. Otherwise use some 
     # sensible defaults
     if 'opt_params' in self.model_inputs:
       self.opt_params = self.model_inputs['opt_params']
     else:
-      self.opt_params = {'tol' : 0.1, 'scale' : 15.0}
+      self.opt_params = {'tol' : 5e-2, 'scale' : 10.0}
       
+      
+    ### Logic for starting or resuming a model run      
       
     # Figure out if we should start a new simulation or continue running an 
     #  existing one based on what the input file looks like 

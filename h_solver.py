@@ -1,5 +1,4 @@
 from dolfin import *
-from dolfin_adjoint import *
 from scipy.integrate import ode
 from dolfin import MPI, mpi_comm_world
 from colored import fg, attr

@@ -4,8 +4,6 @@ from colored import fg, attr
 from scipy.optimize import fmin_l_bfgs_b
 import numpy as np
 
-parameters['form_compiler']['precision'] = 30
-
 """ Solves phi with h fixed."""
 
 class PhiSolver(object):
@@ -30,8 +28,6 @@ class PhiSolver(object):
     # Potential
     phi = model.phi
     self.phi = phi
-    # Potential at 0 pressure
-    phi_m = model.phi_m
     # Potential at overburden pressure
     phi_0 = model.phi_0
     # Rate factor
@@ -53,7 +49,7 @@ class PhiSolver(object):
     ### Set up the PDE for the potential 
 
     # Unknown 
-    phi.assign(phi_m)
+    phi.assign(phi_0)
     # Expression for effective pressure in terms of potential
     N = phi_0 - phi
     # Flux vector
@@ -79,7 +75,6 @@ class PhiSolver(object):
     self.J_phi += (Constant(0.25 * A) * h * N**4) * dx
     self.J_phi += (w - m) * phi * dx
     
-    
     # Function to store the variation of the functional
     self.dJ_phi = Function(model.V_cg)
     # Vector to store the global variation of the functional 
@@ -89,28 +84,16 @@ class PhiSolver(object):
 
     # Define some upper and lower bounds for phi
 
-    # Lower bound as function
-    self.phi_min = Function(model.V_cg)
-    self.phi_min.assign(phi_m)
-    # Upper bound as function    
-    self.phi_max = Function(model.V_cg)
-    self.phi_max.assign(phi_0)
-    
-    # On Dirichlet boundary conditions set the min and the max to be equal
-    for bc in model.d_bcs:
-      bc.apply(self.phi_min.vector())
-      bc.apply(self.phi_max.vector())  
-
     # Lower bound as a vector
     self.phi_min_global = Vector()
-    phi_m.vector().gather(self.phi_min_global, self.indexes)
+    self.model.phi_min.vector().gather(self.phi_min_global, self.indexes)
     # Upper bound as a vector
     self.phi_max_global = Vector()
-    phi_0.vector().gather(self.phi_max_global, self.indexes)
+    self.model.phi_max.vector().gather(self.phi_max_global, self.indexes)
     
     # Bounds for lbfgsb
     self.bounds = zip(self.phi_min_global.array(), self.phi_max_global.array())
-    
+
     
   # Python function version of the functional
   def __J_phi_func__(self, x):
@@ -172,7 +155,6 @@ class PhiSolver(object):
   # is the usual solver tolerance and scale rescales the problem. Increasing the
   # scale can prevent premature convergence
   def __solve_opt__(self):
-    self.phi.assign(self.phi_max)
     # Tolerance
     tol = self.model.opt_params['tol']
     # Gather phi into a single vector called phi_global
@@ -184,18 +166,16 @@ class PhiSolver(object):
     phi_start = np.array(self.phi_global.array())
     # Solve the optimization problem
     phi_opt, f, d = fmin_l_bfgs_b(self.__J_phi_func__, phi_start, self.__var_J_phi_func__, 
-                  pgtol = tol, disp = disp)
-                  
-    # Now assigm phi_opt to phi
+                 bounds = self.bounds, pgtol = tol, disp = disp)
+                          
+    # Now assign phi_opt to phi
     self.__set_phi__(phi_opt)
-
-    plot(self.phi, interactive = True)
 
 
   # External function that solves optimization problem for model.phi then updates 
   # any fields related to phi 
   def solve_opt(self):    
-    self.__solve_opt__(tol, scale)
+    self.__solve_opt__()
     self.model.update_phi()
     
 
@@ -226,8 +206,6 @@ class PhiSolver(object):
     # Update any fields derived from phi
     self.model.update_phi()
     
-    plot(self.model.pfo, interactive = True)
-    
     # No more pretty colors. ):
     #print('%s' % (attr(0))),
       
@@ -239,9 +217,9 @@ class PhiSolver(object):
     # Array of values for phi
     phi_vals = self.model.phi.vector().array()
     # Array of minimum values
-    phi_max_vals = self.phi_max.vector().array()
+    phi_max_vals = self.model.phi_max.vector().array()
     # Array of maximum values
-    phi_min_vals = self.phi_min.vector().array()
+    phi_min_vals = self.model.phi_min.vector().array()
     
     # Indexes in the array of phi vals that are overpressure
     indexes_over = phi_vals > phi_max_vals + 1e-3
