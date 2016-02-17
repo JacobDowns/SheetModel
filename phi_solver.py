@@ -1,7 +1,7 @@
 from dolfin import *
-from dolfin_adjoint import *
 from dolfin import MPI, mpi_comm_world
 from colored import fg, attr
+from scipy.optimize import fmin_l_bfgs_b
 
 parameters['form_compiler']['precision'] = 30
 
@@ -13,6 +13,11 @@ class PhiSolver(object):
     
     # Process number    
     self.MPI_rank = MPI.rank(mpi_comm_world())
+    # Local to global dof map    
+    self.global_indexes = V_cg.dofmap().tabulate_local_to_global_dofs()
+    # Array of all indexes. This is used to gather values on multiple processes
+    # into a single vector
+    self.indexes = np.array(range(V_cg.dim()), dtype = np.intc)
     # A reference to the model, which contains all the inputs we need
     self.model = model
     # Get melt rate
@@ -23,13 +28,11 @@ class PhiSolver(object):
     u_b = model.u_b
     # Potential
     phi = model.phi
+    self.phi = phi
     # Potential at 0 pressure
     phi_m = model.phi_m
     # Potential at overburden pressure
     phi_0 = model.phi_0
-    # This is necessary due to a bizarre dolfin-adjoint bug. For some reason
-    # reprojecting gets rid of it. 
-    phi_0 = project(phi_0, model.V_cg)
     # Rate factor
     A = model.pcs['A']
     # Sheet conductivity
@@ -49,60 +52,100 @@ class PhiSolver(object):
     ### Set up the PDE for the potential 
 
     # Unknown 
-    u = Function(model.V_cg)
-    u.assign(phi_m, annotate = False)
-    self.u = u
+    phi.assign(phi_m)
     # Expression for effective pressure in terms of potential
-    Nu = phi_0 - u
+    N = phi_0 - phi
     # Flux vector
-    qu = -k * h**alpha * (dot(grad(u), grad(u)) + phi_reg)**(delta / 2.0) * grad(u)
+    q = -k * h**alpha * (dot(grad(phi), grad(phi)) + phi_reg)**(delta / 2.0) * grad(phi)
     # Opening term 
-    wu = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
+    w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
     # Closing term
-    vu = Constant(A) * h * Nu**3
+    v = Constant(A) * h * N**3
     
-    # Function for storing the variation of the objective function 
     # Test function
     theta = TestFunction(model.V_cg)
     # Variational form for the PDE
-    self.F = -dot(grad(theta), qu) * dx + (wu - vu - m) * theta * dx
+    self.F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
     # Get the Jacobian
     du = TrialFunction(model.V_cg)
     self.J = derivative(self.F, u, du) 
 
   
-    ### Set up the variational principle
+    ### Set up the variational principle for determining potential 
+  
+    # Functional for the potential
+    self.J_phi = Constant(1. / beta) * k * h**alpha * (dot(grad(phi), grad(phi)) + phi_reg)**(beta / 2.0) * dx  
+    self.J_phi += (Constant(0.25 * A) * h * N**4) * dx
+    self.J_phi += (w - m) * phi * dx
     
-    phi.assign(phi_0, annotate = True)
-    # Expression for effective pressure
-    N = phi_0 - phi
-    # Opening term 
-    w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
+    
+    # Function to store the variation of the functional
+    self.dJ_phi = Function(V_cg)
+    # Vector to store the global variation of the functional 
+    self.dJ_phi_global = Vector()
+    # Vector to store global value of phi
+    self.global_phi = Vector()
 
     # Define some upper and lower bounds for phi
+
+    # Lower bound as function
     self.phi_min = Function(model.V_cg)
+    self.phi_min.assign(phi_m)
+    # Upper bound as function    
     self.phi_max = Function(model.V_cg)
-    self.phi_min.assign(phi_m, annotate = False)
-    self.phi_max.assign(phi_0, annotate = False)
+    self.phi_max.assign(phi_0)
     
     # On Dirichlet boundary conditions set the min and the max to be equal
     for bc in model.d_bcs:
       bc.apply(self.phi_min.vector())
-      bc.apply(self.phi_max.vector())    
+      bc.apply(self.phi_max.vector())  
+
+    # Lower bound as a vector
+    self.phi_min_global = Vector()
+    phi_m.gather(self.phi_min_global, indexes)
+    # Upper bound as a vector
+    self.phi_max_global = Vector()
+    phi_0.gather(self.phi_max_global, indexes)
     
-    # Functional for the potential
-    J_phi = Constant(1. / beta) * k * h**alpha * (dot(grad(phi), grad(phi)) + phi_reg)**(beta / 2.0) * dx  
-    J_phi += (Constant(0.25 * A) * h * N**4) * dx
-    J_phi += (w - m) * phi * dx
+    # Bounds for lbfgsb
+    self.bounds = zip(self.phi_min_global.array(), self.phi_max_global.vector().array())
     
-    self.J_hat = Functional(J_phi * dt[FINISH_TIME])
-    self.rf = ReducedFunctional(self.J_hat, Control(phi, value = phi))
-  
+    
+  # Python function version of the functional
+  def __J_phi_func__(x):
+    # Assign phi
+    self.__set_phi__(x)
+    # Return the value of functional
+    return assemble(self.J_phi)
+    
+    
+  # Python function for the variation of the functional
+  def __var_J_phi_func__(x):
+    # Assign phi
+    self.__set_phi__(x)
+    # Store the variation of the functional in a function
+    self.dJ_phi.vector().set_local(assemble(self.F).array())
+    self.dJ_phi.vector().apply("insert")
+    
+    # Enforce 0 variation on Dirichlet boundaries 
+    for bc in self.model.d_bcs:
+      bc.apply(self.dJ_phi)
+    
+    # Now gather the variation into a single global vector and return it
+    self.dJ_phi.vector().gather(self.dJ_phi_global, self.indexes)
+    return self.dJ_phi_global.array()
+
+
+  # Sets the local part of phi given a global vector x
+  def __set_phi__(self, x):
+    model.phi.vector().set_local(x[self.global_indxes])
+    model.phi.vector().apply("insert")
+
 
   # Internal function that solves the PDE for u
   def __solve_pde__(self):
     # Solve for potential
-    solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params, annotate = False)    
+    solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
 
     
   # External function that solves PDE for u then copies it to model.phi and updates
@@ -114,13 +157,19 @@ class PhiSolver(object):
     # Update phi
     self.model.update_phi()
 
-
   # Internal function that solves optimization problem for model.phi. Tolerance
   # is the usual solver tolerance and scale rescales the problem. Increasing the
   # scale can prevent premature convergence
   def __solve_opt__(self, tol, scale):
+    # Gather phi into a single vector
+    self.phi.vector().gather(self.phi_global, indexes)
+    
     # Solve the optimization problem
-    minimize(self.rf, method = "L-BFGS-B", scale = scale, tol = tol, bounds = (self.phi_min, self.phi_max), options = {"disp": True})
+    phi_opt, f, d = fmin_l_bfgs_b(self.__J_phi_func__, self.phi_global.array(), self.__var_J_phi_func__, 
+                  bounds = self.bounds)
+                  
+    # Now assigm phi_opt to phi
+    self.__set_phi__(x)
 
 
   # External function that solves optimization problem for model.phi then updates 

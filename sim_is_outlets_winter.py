@@ -14,7 +14,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Output directory
 out_dir = 'out_is_outlets_winter'
 # Input file
-input_file = 'inputs_is_outlets_steady.hdf5'
+input_file = 'inputs/inputs_is_outlets_steady.hdf5'
 # Load the input file
 inputs = HDF5File(mpi_comm_world(), input_file, 'r')
 
