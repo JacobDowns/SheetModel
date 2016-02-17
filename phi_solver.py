@@ -117,13 +117,13 @@ class PhiSolver(object):
     # Assign phi
     self.__set_phi__(x)
     
-    # Value of functional
+    #plot(self.phi, interactive = True)
+    
+    # Function value of functional
     F =  assemble(self.J_phi)
     
-    if self.MPI_rank == 0:
-      print "Functional Value: " + str(f)
-      
-    return F
+    # Scale and return the value
+    return self.model.opt_params['scale'] * F
     
     
   # Python function for the variation of the functional
@@ -135,8 +135,8 @@ class PhiSolver(object):
     self.dJ_phi.vector().apply("insert")
     
     # Enforce 0 variation on Dirichlet boundaries 
-    for bc in self.model.d_bcs:
-      bc.apply(self.dJ_phi.vector())
+    #for bc in self.model.d_bcs:
+    #  bc.apply(self.dJ_phi.vector())
     
     # Now gather the variation into a single global vector and return it
     self.dJ_phi.vector().gather(self.dJ_phi_global, self.indexes)
@@ -145,10 +145,7 @@ class PhiSolver(object):
     # Reset the vector or petsc complains
     self.dJ_phi_global = Vector()
     
-    if self.MPI_rank == 0:
-      print "|grad F| " + str(np.linalg.norm(dF))
-    
-    return dF
+    return self.model.opt_params['scale'] * dF
 
 
   # Sets the local part of phi given a global vector x
@@ -175,13 +172,19 @@ class PhiSolver(object):
   # is the usual solver tolerance and scale rescales the problem. Increasing the
   # scale can prevent premature convergence
   def __solve_opt__(self):
+    self.phi.assign(self.phi_max)
+    # Tolerance
+    tol = self.model.opt_params['tol']
     # Gather phi into a single vector called phi_global
     self.phi.vector().gather(self.phi_global, self.indexes)
+    # Display first processor only
+    disp = (self.MPI_rank == 0)
     
-    
+    # Initial condition
+    phi_start = np.array(self.phi_global.array())
     # Solve the optimization problem
-    phi_opt, f, d = fmin_l_bfgs_b(self.__J_phi_func__, self.phi_global.array(), self.__var_J_phi_func__, 
-                  bounds = self.bounds)
+    phi_opt, f, d = fmin_l_bfgs_b(self.__J_phi_func__, phi_start, self.__var_J_phi_func__, 
+                  pgtol = tol, disp = disp)
                   
     # Now assigm phi_opt to phi
     self.__set_phi__(phi_opt)

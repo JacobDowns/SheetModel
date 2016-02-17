@@ -118,7 +118,7 @@ class SheetModel():
     if 'opt_params' in self.model_inputs:
       self.opt_params = self.model_inputs['opt_params']
     else:
-      self.opt_params = {'tol' : 0.5e-7, 'scale' : 15.0}
+      self.opt_params = {'tol' : 0.5e-7, 'scale' : 1.0}
       
       
     # Figure out if we should start a new simulation or continue running an 
