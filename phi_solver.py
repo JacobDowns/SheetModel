@@ -2,6 +2,7 @@ from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from colored import fg, attr
 from scipy.optimize import fmin_l_bfgs_b
+import numpy as np
 
 parameters['form_compiler']['precision'] = 30
 
@@ -14,10 +15,10 @@ class PhiSolver(object):
     # Process number    
     self.MPI_rank = MPI.rank(mpi_comm_world())
     # Local to global dof map    
-    self.global_indexes = V_cg.dofmap().tabulate_local_to_global_dofs()
+    self.global_indexes = model.V_cg.dofmap().dofs()
     # Array of all indexes. This is used to gather values on multiple processes
     # into a single vector
-    self.indexes = np.array(range(V_cg.dim()), dtype = np.intc)
+    self.indexes = np.array(range(model.V_cg.dim()), dtype = np.intc)
     # A reference to the model, which contains all the inputs we need
     self.model = model
     # Get melt rate
@@ -67,8 +68,8 @@ class PhiSolver(object):
     # Variational form for the PDE
     self.F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
     # Get the Jacobian
-    du = TrialFunction(model.V_cg)
-    self.J = derivative(self.F, u, du) 
+    dphi = TrialFunction(model.V_cg)
+    self.J = derivative(self.F, phi, dphi) 
 
   
     ### Set up the variational principle for determining potential 
@@ -80,11 +81,11 @@ class PhiSolver(object):
     
     
     # Function to store the variation of the functional
-    self.dJ_phi = Function(V_cg)
+    self.dJ_phi = Function(model.V_cg)
     # Vector to store the global variation of the functional 
     self.dJ_phi_global = Vector()
     # Vector to store global value of phi
-    self.global_phi = Vector()
+    self.phi_global = Vector()
 
     # Define some upper and lower bounds for phi
 
@@ -102,25 +103,31 @@ class PhiSolver(object):
 
     # Lower bound as a vector
     self.phi_min_global = Vector()
-    phi_m.gather(self.phi_min_global, indexes)
+    phi_m.vector().gather(self.phi_min_global, self.indexes)
     # Upper bound as a vector
     self.phi_max_global = Vector()
-    phi_0.gather(self.phi_max_global, indexes)
+    phi_0.vector().gather(self.phi_max_global, self.indexes)
     
     # Bounds for lbfgsb
-    self.bounds = zip(self.phi_min_global.array(), self.phi_max_global.vector().array())
+    self.bounds = zip(self.phi_min_global.array(), self.phi_max_global.array())
     
     
   # Python function version of the functional
-  def __J_phi_func__(x):
+  def __J_phi_func__(self, x):
     # Assign phi
     self.__set_phi__(x)
-    # Return the value of functional
-    return assemble(self.J_phi)
+    
+    # Value of functional
+    F =  assemble(self.J_phi)
+    
+    if self.MPI_rank == 0:
+      print "Functional Value: " + str(f)
+      
+    return F
     
     
   # Python function for the variation of the functional
-  def __var_J_phi_func__(x):
+  def __var_J_phi_func__(self, x):
     # Assign phi
     self.__set_phi__(x)
     # Store the variation of the functional in a function
@@ -129,59 +136,64 @@ class PhiSolver(object):
     
     # Enforce 0 variation on Dirichlet boundaries 
     for bc in self.model.d_bcs:
-      bc.apply(self.dJ_phi)
+      bc.apply(self.dJ_phi.vector())
     
     # Now gather the variation into a single global vector and return it
     self.dJ_phi.vector().gather(self.dJ_phi_global, self.indexes)
-    return self.dJ_phi_global.array()
+    # Save the array     
+    dF = np.array(self.dJ_phi_global.array())
+    # Reset the vector or petsc complains
+    self.dJ_phi_global = Vector()
+    
+    if self.MPI_rank == 0:
+      print "|grad F| " + str(np.linalg.norm(dF))
+    
+    return dF
 
 
   # Sets the local part of phi given a global vector x
   def __set_phi__(self, x):
-    model.phi.vector().set_local(x[self.global_indxes])
-    model.phi.vector().apply("insert")
+    self.model.phi.vector().set_local(x[self.global_indexes])
+    self.model.phi.vector().apply("insert")
 
 
   # Internal function that solves the PDE for u
   def __solve_pde__(self):
     # Solve for potential
-    solve(self.F == 0, self.u, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
+    solve(self.F == 0, self.phi, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)    
 
     
   # External function that solves PDE for u then copies it to model.phi and updates
   # any model fields related to phi
   def solve_pde(self):
-    self.__solve_pde__()
-    # Copy PDE solution u to model phi
-    self.model.phi.assign(self.u, annotate = False)    
+    self.__solve_pde__() 
     # Update phi
     self.model.update_phi()
+    
 
   # Internal function that solves optimization problem for model.phi. Tolerance
   # is the usual solver tolerance and scale rescales the problem. Increasing the
   # scale can prevent premature convergence
-  def __solve_opt__(self, tol, scale):
-    # Gather phi into a single vector
-    self.phi.vector().gather(self.phi_global, indexes)
+  def __solve_opt__(self):
+    # Gather phi into a single vector called phi_global
+    self.phi.vector().gather(self.phi_global, self.indexes)
+    
     
     # Solve the optimization problem
     phi_opt, f, d = fmin_l_bfgs_b(self.__J_phi_func__, self.phi_global.array(), self.__var_J_phi_func__, 
                   bounds = self.bounds)
                   
     # Now assigm phi_opt to phi
-    self.__set_phi__(x)
+    self.__set_phi__(phi_opt)
+
+    plot(self.phi, interactive = True)
 
 
   # External function that solves optimization problem for model.phi then updates 
   # any fields related to phi 
-  def solve_opt(self):
-    scale = self.model.opt_params['scale']
-    tol = self.model.opt_params['tol']
-    
+  def solve_opt(self):    
     self.__solve_opt__(tol, scale)
     self.model.update_phi()
-    
-    parameters["adjoint"]["stop_annotating"] = True
     
 
   # Steps the potential forward with h fixed
@@ -190,12 +202,11 @@ class PhiSolver(object):
     #print('%s' % (fg(231)))
     
     # Solve the PDE with an initial guess of phi_m
-    self.u.assign(self.model.phi_m, annotate = False)
+    self.phi.assign(self.model.phi_m)
     self.__solve_pde__()
-    
-    # Copy the solution u to phi
-    self.model.phi.assign(self.u, annotate = False)    
+    # Update fields related to phi
     self.model.update_phi()
+    
     
     # Check if there is any over or under pressure on this process
     local_over_or_under = self.phi_apply_bounds()
@@ -206,13 +217,13 @@ class PhiSolver(object):
     # If we do get over or under pressure, we'll solve the optimization problem
     # to correct it
     if global_over_or_under:
-      scale = self.model.opt_params['scale']
-      tol = self.model.opt_params['tol']
       # Solve the optimization problem with the PDE solution as an initial guess
-      self.__solve_opt__(tol, scale)
+      self.__solve_opt__()
     
     # Update any fields derived from phi
     self.model.update_phi()
+    
+    plot(self.model.pfo, interactive = True)
     
     # No more pretty colors. ):
     #print('%s' % (attr(0))),

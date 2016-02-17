@@ -1,6 +1,5 @@
 from dolfin import *
 from dolfin import MPI, mpi_comm_world
-from dolfin_adjoint import *
 from constants import *
 from phi_solver import *
 from h_solver import *
@@ -262,7 +261,7 @@ class SheetModel():
     except :
       # Otherwise we'll just use use the default constant conductivity 
       self.k.interpolate(Constant(self.pcs['k']))
-      self.k_func.assign(self.k, annotate = False)
+      self.k_func.assign(self.k)
       
       
   # Update the effective pressure to reflect current value of phi
@@ -314,7 +313,7 @@ class SheetModel():
       if 'u_b' in to_write:
         self.u_b_out << self.u_b_func
       if 'q' in to_write:
-        self.q_func.assign(project(self.phi_solver.q, self.V_cg), annotate = False)
+        self.q_func.assign(project(self.phi_solver.q, self.V_cg))
         self.q_out << self.q_func
       if 'k' in to_write:
         self.k_out << self.k_func
@@ -341,20 +340,20 @@ class SheetModel():
   
   # Updates the melt rate function
   def set_m(self, new_m):
-    self.m.assign(new_m, annotate = False)
-    self.m_func.assign(new_m, annotate = False)
+    self.m.assign(new_m)
+    self.m_func.assign(new_m)
     
   
   # Update sliding speed
   def set_u_b(self, new_u_b):
-    self.u_b.assign(new_u_b, annotate = False)
-    self.u_b_func.assign(new_u_, annotate = False)
+    self.u_b.assign(new_u_b)
+    self.u_b_func.assign(new_u_b)
     
     
   # Updates the hydraulic conductivity
   def set_k(self, new_k):
-    self.k.assign(new_k, annotate = False)
-    self.k_func.assign(new_k, annotate = False)
+    self.k.assign(new_k)
+    self.k_func.assign(new_k)
    
    
   # Assigns a value to a model variable. This function first looks in the 
@@ -369,17 +368,17 @@ class SheetModel():
         # If the input variable is an expression, we need to project it to 
         # get a function
         var = input_var
-        var_func.assign(project(input_var, self.V_cg), annotate = False)
+        var_func.assign(project(input_var, self.V_cg))
       else :
         # If the input variable is a function, then we'll copy it rather than
         # use the original function to prevent unwanted metaphysical linkage
-        var.assign(input_var, annotate = False)
-        var_func.assign(input_var, annotate = False)
+        var.assign(input_var)
+        var_func.assign(input_var)
           
     else :
       # If we didn't find anything in the model_inputs dictionary, check the input_file.
       if self.read_var(name, var) :
-        var_func.assign(var, annotate = False)
+        var_func.assign(var)
       else :
         # If the input isn't there either raise an exception
         raise Exception("Could not load model input: " + str(name))
@@ -402,7 +401,7 @@ class SheetModel():
         # Update the time
         self.m.t = self.t  
         # Update function form of m
-        self.m_func.assign(project(self.m, self.V_cg), annotate = False)
+        self.m_func.assign(project(self.m, self.V_cg))
         
     # Same deal for sliding speed
     if isinstance(self.u_b, dolfin.Expression):
@@ -410,10 +409,10 @@ class SheetModel():
         # Update the time
         self.u_b.t = self.t  
         # Update function form of u_b
-        self.u_b_func.assign(project(self.u_b, self.V_cg), annotate = False)
+        self.u_b_func.assign(project(self.u_b, self.V_cg))
         
     # Same deal for k
     if isinstance(self.k, dolfin.Expression):
       if hasattr(self.k, 't'):
         self.k.t = self.t  
-        self.k_func.assign(project(self.k, self.V_cg), annotate = False)
+        self.k_func.assign(project(self.k, self.V_cg))
