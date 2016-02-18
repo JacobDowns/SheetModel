@@ -46,13 +46,13 @@ bc = DirichletBC(V_cg, pcs['rho_w'] * pcs['g'] * B, outlet_boundary, "pointwise"
 ### Initialize model
 
 # Use a smaller conductivity
-pcs['k'] = 5e-3
+pcs['k'] = 1e-2
 
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['checkpoint_file'] = 'outlets_is_winter'
-#model_inputs['d_bcs'] = [bc]
+model_inputs['d_bcs'] = [bc]
 model_inputs['constants'] = pcs
 
 
@@ -102,7 +102,7 @@ while model.t < T:
     current_time = model.t / spd
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
-  model.step(dt)
+  model.step_opt(dt)
   
   if i % 3 == 0:
     model.write_pvds(['h', 'pfo'])

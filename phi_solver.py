@@ -170,20 +170,20 @@ class PhiSolver(object):
                           
     # Now assign phi_opt to phi
     self.__set_phi__(phi_opt)
+    # Reset phi global of petsc will complain
+    self.phi_global = Vector()
 
 
   # External function that solves optimization problem for model.phi then updates 
   # any fields related to phi 
   def solve_opt(self):    
+    self.phi.assign(self.model.phi_m)
     self.__solve_opt__()
     self.model.update_phi()
     
 
   # Steps the potential forward with h fixed
   def step(self):
-    # Pretty colors! (:
-    #print('%s' % (fg(231)))
-    
     # Solve the PDE with an initial guess of phi_m
     self.phi.assign(self.model.phi_m)
     self.__solve_pde__()
@@ -205,9 +205,6 @@ class PhiSolver(object):
     
     # Update any fields derived from phi
     self.model.update_phi()
-    
-    # No more pretty colors. ):
-    #print('%s' % (attr(0))),
       
   
   # Correct the potential so that it is above 0 pressure and below overburden.

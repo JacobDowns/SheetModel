@@ -142,7 +142,7 @@ class SheetModel():
     if 'opt_params' in self.model_inputs:
       self.opt_params = self.model_inputs['opt_params']
     else:
-      self.opt_params = {'tol' : 5e-2, 'scale' : 10.0}
+      self.opt_params = {'tol' : 1e-1, 'scale' : 1.0}
       
       
     ### Logic for starting or resuming a model run      
