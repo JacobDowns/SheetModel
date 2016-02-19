@@ -177,7 +177,7 @@ class PhiSolver(object):
   # External function that solves optimization problem for model.phi then updates 
   # any fields related to phi 
   def solve_opt(self):    
-    self.phi.assign(self.model.phi_m)
+    self.phi.assign(self.model.phi_0)
     self.__solve_opt__()
     self.model.update_phi()
     
