@@ -360,6 +360,8 @@ class SheetModel():
       self.output_file.write(self.k, "k", self.t)
     if 'm' in to_write:
       self.output_file.write(self.m, "m", self.t)
+    if 'pfo' in to_write:
+      self.output_file.write(self.pfo, "pfo", self.t)
       
     self.output_file.flush()
     
