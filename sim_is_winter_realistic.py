@@ -76,11 +76,11 @@ i = 0
 while model.t < T:  
   
   # Update the melt
-  model.set_m(project(Constant(m_scale(model.t)) * m, V_cg))
+  model.set_m(project(Constant(m_scale(model.t)) * m, model.V_cg))
   # Update the conductivity
-  model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), V_cg))
+  model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), model.V_cg))
   # Update the sliding speed
-  model.set_u_b(project(Constant(u_b_scale(model.t)) * u_b, V_cg))  
+  model.set_u_b(project(Constant(u_b_scale(model.t)) * u_b, model.V_cg))  
   
   if MPI_rank == 0: 
     current_time = model.t / spd
