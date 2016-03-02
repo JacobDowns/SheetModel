@@ -92,7 +92,7 @@ while model.t < T:
     model.write_pvds(['h', 'pfo'])
     
   if i % 3 == 0:
-    model.checkpoint(['pfo'])
+    model.checkpoint(['pfo', 'h', 'k', 'm', 'u_b'])
   
   if MPI_rank == 0: 
     print
