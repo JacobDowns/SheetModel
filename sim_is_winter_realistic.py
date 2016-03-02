@@ -21,13 +21,17 @@ input_file = 'inputs/inputs_is_steady.hdf5'
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
+model_inputs['opt_params'] = {'tol' : 8e-3, 'scale' : 20}
 model = SheetModel(model_inputs)
-
 
 m = Function(model.V_cg)
 m.assign(model.m)
 u_b = Function(model.V_cg)
 u_b.assign(model.u_b)
+
+
+
+### Set up scaling functions for time dependent m, k, and u_b
 
 # Seconds per day
 spd = pcs['spd']
