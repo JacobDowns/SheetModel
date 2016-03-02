@@ -55,6 +55,11 @@ model_inputs['constants'] = pcs
 model_inputs['opt_params'] = {'tol' : 5e-3, 'scale' : 30}
 model = SheetModel(model_inputs)
 
+m = Function(model.V_cg)
+m.assign(model.m)
+u_b = Function(model.V_cg)
+u_b.assign(model.u_b)
+
 
 ### Set up scaling functions for time dependent m, k, and u_b
 
