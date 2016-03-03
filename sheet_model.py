@@ -225,7 +225,7 @@ class SheetModel():
     self.h_out = File(self.out_dir + "h.pvd")
     self.phi_out = File(self.out_dir + "phi.pvd")
     self.pfo_out = File(self.out_dir + "pfo.pvd")
-    self.m_out = File(self.out_dir + "m.xdmf")
+    self.m_out = File(self.out_dir + "m.pvd")
     self.u_b_out = File(self.out_dir + "u_b.pvd")
     self.k_out = File(self.out_dir + "k.pvd")
     
