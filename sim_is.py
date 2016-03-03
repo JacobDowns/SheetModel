@@ -1,5 +1,4 @@
 from dolfin import *
-from dolfin_adjoint import *
 from sheet_model import *
 from constants import *
 from dolfin import MPI, mpi_comm_world
