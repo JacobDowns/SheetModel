@@ -46,7 +46,7 @@ bc = DirichletBC(V_cg, pcs['rho_w'] * pcs['g'] * B, outlet_boundary, "pointwise"
 ### Initialize model
 
 # Use a smaller conductivity
-pcs['k'] = 1e-2
+pcs['k'] = 7e-3
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
@@ -79,7 +79,7 @@ def m_scale(t):
   return 0.0
 
 # Minimum conductivity
-k_min = 8e-5
+k_min = 9e-5
 # Scaling parameter ensures that sets the maximum possible conductivity
 a = model.pcs['k'] / m.vector().max()
 # Parameter that controls lag of conductivity behind melt
