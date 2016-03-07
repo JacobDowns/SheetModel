@@ -47,7 +47,7 @@ bc = DirichletBC(V_cg, pcs['rho_w'] * pcs['g'] * B, outlet_boundary, "pointwise"
 ### Initialize model
 
 # Use a smaller conductivity
-pcs['k'] = 1e-2
+pcs['k'] = 7e-3
 
 model_inputs = {}
 model_inputs['input_file'] = input_file
