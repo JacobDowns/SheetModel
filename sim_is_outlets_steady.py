@@ -68,14 +68,13 @@ spd = pcs['spd']
 # End time
 T = 90.0 * spd
 # Time step
-dt = 60.0 * 60.0 * spd
+dt = spd
 # Iteration count
 i = 0
 
 while model.t < T:
   if MPI_rank == 0: 
     current_time = model.t / spd
-    #print "Current Time: " + str(current_time)
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
   model.step(dt)
@@ -88,7 +87,5 @@ while model.t < T:
   
   if MPI_rank == 0: 
     print
-    
-  #plot(model.pfo, interactive = True)
     
   i += 1
