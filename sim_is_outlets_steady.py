@@ -32,7 +32,7 @@ inputs.read(B, "B")
 def outlet_boundary(x, on_boundary):
   # These two outlet points are based on Google Earth -- places where it looks
   # like water is flowing out
-  out1_x = -491254.66
+  out1_x = -491254.66 
   out1_y = -2461159.0
   out2_x = -491839.3
   out2_y = -2472998.0
@@ -53,7 +53,7 @@ model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['checkpoint_file'] = 'outlets_steady'
-#model_inputs['d_bcs'] = [bc]
+model_inputs['d_bcs'] = [bc]
 model_inputs['constants'] = pcs
 
 
@@ -68,7 +68,7 @@ spd = pcs['spd']
 # End time
 T = 90.0 * spd
 # Time step
-dt = 60.0 * 60.0 * 1.0
+dt = 60.0 * 60.0 * spd
 # Iteration count
 i = 0
 
