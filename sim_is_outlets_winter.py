@@ -14,7 +14,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Output directory
 out_dir = 'out_is_outlets_winter'
 # Input file
-input_file = 'inputs/inputs_is_outlets_steady.hdf5'
+input_file = 'inputs/outlets_steady.hdf5'
 # Load the input file
 inputs = HDF5File(mpi_comm_world(), input_file, 'r')
 
@@ -46,14 +46,14 @@ bc = DirichletBC(V_cg, pcs['rho_w'] * pcs['g'] * B, outlet_boundary, "pointwise"
 ### Initialize model
 
 # Use a smaller conductivity
-pcs['k'] = 1e-2
+pcs['k'] = 7e-3
 
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['d_bcs'] = [bc]
 model_inputs['constants'] = pcs
-model_inputs['opt_params'] = {'tol' : 1e-2, 'scale' : 15}
+model_inputs['opt_params'] = {'tol' : 5e-3, 'scale' : 30}
 
 
 # Create the sheet model
@@ -87,7 +87,7 @@ spd = pcs['spd']
 # Seconds per month
 spm = pcs['spm']
 # End time
-T = 10.0 * spm
+T = 7.0 * spm
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
@@ -108,7 +108,7 @@ while model.t < T:
     model.write_pvds(['h', 'pfo'])
     
   if i % 3 == 0:
-    model.checkpoint(['pfo'])
+    model.checkpoint(['pfo','h','phi'])
   
   if MPI_rank == 0: 
     print
