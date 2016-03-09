@@ -27,6 +27,7 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 ### Initialize model
 
 model_inputs = {}
+pcs['k'] = 5e-3
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['constants'] = pcs
@@ -37,46 +38,41 @@ model = SheetModel(model_inputs)
 ### Make the conductivity spatially varying depending on melt
 m = Function(model.V_cg)
 m.assign(model.m)
-# Minimum conductivity
-k_min = 9e-5
-# Scaling parameter that sets the maximum possible conductivity
-a = model.pcs['k'] / m.vector().max()
 
-model.set_k(Constant(a)*m + Constant(k_min))
-plot(k, interactive = True)
-quit()
+# Maximum conductivity
+k_max = model.pcs['k']
+# Minimum conductivity
+k_min = 5e-5
+# Scaling parameter that sets the maximum possible conductivity
+a = (k_max - k_min) / m.vector().max()
+# Set the conductivity
+model.set_k( project(Constant(a)*m + Constant(k_min), V_cg))
 
 
 ### Run the simulation
 
 # Seconds per day
 spd = pcs['spd']
-# Seconds per month
-spm = pcs['spm']
 # End time
-T = 7.0 * spm
+T = 90 * spd
 # Time step
-dt = 60.0 * 60.0 * 8.0
+dt = spd
 # Iteration count
 i = 0
 
 
 while model.t < T:  
-  # Update the conductivity
-  model.set_k(project(Constant(k_scale(model.t)) * m + Constant(k_min), model.V_cg))
-
-  
   if MPI_rank == 0: 
     current_time = model.t / spd
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
   model.step(dt)
   
-  if i % 3 == 0:
+  if i % 1 == 0:
     model.write_pvds(['h', 'pfo'])
     
-  if i % 3 == 0:
-    model.checkpoint(['pfo', 'h', 'k', 'm', 'u_b'])
+  if i % 1 == 0:
+    model.checkpoint(['h'])
   
   if MPI_rank == 0: 
     print
