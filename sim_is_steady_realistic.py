@@ -27,11 +27,11 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 ### Initialize model
 
 model_inputs = {}
-pcs['k'] = 5e-3
+pcs['k'] = 7e-3
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['constants'] = pcs
-model_inputs['opt_params'] = {'tol' : 5e-3, 'scale' : 30}
+model_inputs['opt_params'] = {'tol' : 1e-2, 'scale' : 30}
 model = SheetModel(model_inputs)
 
 
@@ -42,7 +42,7 @@ m.assign(model.m)
 # Maximum conductivity
 k_max = model.pcs['k']
 # Minimum conductivity
-k_min = 5e-5
+k_min = 7e-5
 # Scaling parameter that sets the maximum possible conductivity
 a = (k_max - k_min) / m.vector().max()
 # Set the conductivity
