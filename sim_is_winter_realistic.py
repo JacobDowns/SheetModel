@@ -13,7 +13,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Output directory
 out_dir = 'out_is_winter_realistic'
 # Input file
-input_file = 'inputs/inputs_is_steady.hdf5'
+input_file = 'inputs/steady_realistic/steady_realistic.hdf5'
 
 
 ### Initialize model
@@ -21,7 +21,7 @@ input_file = 'inputs/inputs_is_steady.hdf5'
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
-model_inputs['opt_params'] = {'tol' : 8e-3, 'scale' : 20}
+model_inputs['opt_params'] = {'tol' : 5e-3, 'scale' : 30}
 model = SheetModel(model_inputs)
 
 m = Function(model.V_cg)
@@ -48,15 +48,15 @@ def m_scale(t):
     return cos((pi / (2.0 * shutoff_length)) * t)
   return 0.0
 
+# Maximum conductivity
+k_max = model.pcs['k']
 # Minimum conductivity
 k_min = 5e-5
-# Scaling parameter ensures that sets the maximum possible conductivity
-a = model.pcs['k'] / m.vector().max()
-# Parameter that controls lag of conductivity behind melt
-b = 0.0
+# Scaling parameter that sets the maximum possible conductivity
+a = (k_max - k_min) / m.vector().max()
 # Function that scales k proportionally to m
 def k_scale(t):
-  return a * m_scale(t - b)
+  return a * m_scale(t)
   
 # Create a function that scales u_b down to a maximum of 80 (m/a) in winter
 c = (100.0 / pcs['spy']) / u_b.vector().max()
@@ -71,7 +71,7 @@ spd = pcs['spd']
 # Seconds per month
 spm = pcs['spm']
 # End time
-T = 10.0 * spm
+T = 7.0 * spm
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count

@@ -14,7 +14,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Output directory
 out_dir = 'out_is_outlets_winter_realistic'
 # Input file
-input_file = 'inputs/inputs_is_outlets_steady.hdf5'
+input_file = 'inputs/steady_realistic/outlets_steady_realistic.hdf5'
 # Load the input file
 inputs = HDF5File(mpi_comm_world(), input_file, 'r')
 
@@ -46,7 +46,7 @@ bc = DirichletBC(V_cg, pcs['rho_w'] * pcs['g'] * B, outlet_boundary, "pointwise"
 ### Initialize model
 
 # Use a smaller conductivity
-pcs['k'] = 5e-3
+pcs['k'] = 7e-3
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
@@ -78,15 +78,15 @@ def m_scale(t):
     return cos((pi / (2.0 * shutoff_length)) * t)
   return 0.0
 
+# Maximum conductivity
+k_max = model.pcs['k']
 # Minimum conductivity
-k_min = 9e-5
-# Scaling parameter ensures that sets the maximum possible conductivity
-a = model.pcs['k'] / m.vector().max()
-# Parameter that controls lag of conductivity behind melt
-b = 0.0
+k_min = 5e-5
+# Scaling parameter that sets the maximum possible conductivity
+a = (k_max - k_min) / m.vector().max()
 # Function that scales k proportionally to m
 def k_scale(t):
-  return a * m_scale(t - b)
+  return a * m_scale(t)
   
 # Create a function that scales u_b down to a maximum of 80 (m/a) in winter
 c = (100.0 / pcs['spy']) / u_b.vector().max()
