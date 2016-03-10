@@ -81,7 +81,7 @@ def m_scale(t):
 # Maximum conductivity
 k_max = model.pcs['k']
 # Minimum conductivity
-k_min = 5e-5
+k_min = 7e-5
 # Scaling parameter that sets the maximum possible conductivity
 a = (k_max - k_min) / m.vector().max()
 # Function that scales k proportionally to m
