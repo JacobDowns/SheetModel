@@ -85,7 +85,7 @@ k_min = 7e-5
 # Scaling parameter that sets the maximum possible conductivity
 a = (k_max - k_min) / m.vector().max()
 # Lag time
-b = spd
+b = 7.0*spd
 # Function that scales k proportionally to m
 def k_scale(t):
   return a * m_scale(t-b)
