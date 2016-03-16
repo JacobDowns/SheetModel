@@ -38,8 +38,6 @@ model = SheetModel(model_inputs)
 
 ### Make the conductivity spatially varying depending on melt
 model.set_m(project(model.m * 1.5, V_cg))
-
-plot(model.m * pcs['spy'], interactive = True)
 m = Function(model.V_cg)
 m.assign(model.m)
 
