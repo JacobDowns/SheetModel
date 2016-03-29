@@ -26,3 +26,15 @@ pcs['k'] = 5e-3
 pcs['alpha'] = 5. / 4.
 pcs['beta'] = 3. / 2.
 pcs['delta'] = pcs['beta'] - 2.0
+# Channel conductivity (m^(7/4) / kg^(1/2))
+pcs['k_c'] = 1e-1
+# Specific heat capacity of ice (J / (kg * K))
+pcs['c_w'] = 4.22e3
+# Pressure melting coefficient (J / (kg * K))
+pcs['c_t'] = 7.5e-8
+# Latent heat (J / kg)
+pcs['L'] = 3.34e5
+# Void storage ratio
+pcs['e_v'] = 1e-3
+# Sheet width under channel (m)
+pcs['l_c'] = 2.0   
