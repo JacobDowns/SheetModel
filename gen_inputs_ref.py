@@ -6,14 +6,16 @@ needed to run the model for an ice sheet on a flat bed. High melt variant.
 from dolfin import *
 import numpy as np
 from constants import *
+from cr_tools import *
 
 # Directory to write model inputs
-out_dir = "inputs/"
+out_dir = "inputs_channel/"
 mesh = Mesh(out_dir + "mesh.xml")
 V_cg = FunctionSpace(mesh, "CG", 1)
+V_cr = FunctionSpace(mesh, "CR", 1)
 
 # Write inputs to a hdf5 file
-f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_ref.hdf5", 'w')
+f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_channel_ref.hdf5", 'w')
 # Write the mesh to a file
 f.write(mesh, "mesh")
 
@@ -51,6 +53,15 @@ H = project(S - B, V_cg)
 f.write(B, "B")
 f.write(H, "H")
 
+# Initial pressure
+# Potential at 0 pressure
+phi_m = project(pcs['rho_w'] * pcs['g'] * B, V_cg)
+# Ice overburden pressure
+p_i = project(pcs['rho_i'] * pcs['g'] * H, V_cg)
+# Potential at overburden pressure
+phi_0 = project(phi_m + p_i, V_cg)
+f.write(phi_0, "phi_0")
+
 
 ### Create a facet function with marked boundaries
 
@@ -71,3 +82,25 @@ f.write(boundaries, "boundaries")
 h = Function(V_cg)
 h.interpolate(Constant(0.05))
 f.write(h, "h_0")
+
+# Initial channel height
+S_0 = Function(V_cr)
+f.write(S_0, "S_0")
+
+# Compute the lengths of edges
+edge_lens = Function(V_cr)
+v_cr = TestFunction(V_cr)
+L = assemble(v_cr('-') * dS + v_cr * ds).array()
+edge_lens.vector()[:] = L
+f.write(edge_lens, "edge_lens")
+
+# Create a mask that's 0 on the boundary and 1 on the interior
+M = assemble(v_cr * ds).array()
+mask = Function(V_cr)
+M[M != 0.0] = 2.0
+M[M == 0.0] = 1.0
+M[M == 2.0] = 0.0
+mask.vector()[:] = M
+#cr_tools.plot_cr(mask)
+f.write(mask, "mask")
+
