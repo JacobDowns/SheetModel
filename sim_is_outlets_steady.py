@@ -47,14 +47,14 @@ bc = DirichletBC(V_cg, pcs['rho_w'] * pcs['g'] * B, outlet_boundary, "pointwise"
 ### Initialize model
 
 # Use a smaller conductivity
-pcs['k'] = 5e-3
-
+pcs['k'] = 7e-3
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
 model_inputs['checkpoint_file'] = 'outlets_steady'
 model_inputs['d_bcs'] = [bc]
 model_inputs['constants'] = pcs
+model_inputs['opt_params'] = {'tol' : 1e-2, 'scale' : 30}
 
 
 # Create the sheet model

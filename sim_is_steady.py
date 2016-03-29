@@ -1,5 +1,5 @@
 """
-Runs Issunguata to a steady state
+Runs Issunguata to a steady state. Zero bcs.
 """
 
 from dolfin import *
@@ -18,9 +18,11 @@ input_file = 'inputs/inputs_is.hdf5'
 
 ### Initialize model
 
+pcs['k'] = 7e-3
 model_inputs = {}
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = out_dir
+model_inputs['opt_params'] = {'tol' : 1e-2, 'scale' : 30}
 
 # Create the sheet model
 model = SheetModel(model_inputs)

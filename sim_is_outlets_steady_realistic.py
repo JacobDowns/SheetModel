@@ -88,6 +88,9 @@ while model.t < T:
   
   model.step(dt)
   
+  plot(model.pfo)
+  quit()
+  
   if i % 1 == 0:
     model.write_pvds(['h', 'pfo'])
     

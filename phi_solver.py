@@ -3,6 +3,7 @@ from dolfin import MPI, mpi_comm_world
 from colored import fg, attr
 from scipy.optimize import fmin_l_bfgs_b
 import numpy as np
+import pylab as plt
 
 """ Solves phi with h fixed."""
 
@@ -44,6 +45,7 @@ class PhiSolver(object):
     delta = model.pcs['delta']
     # Regularization parameter
     phi_reg = 1e-15
+
     
 
     ### Set up the PDE for the potential 
@@ -93,18 +95,18 @@ class PhiSolver(object):
     
     # Bounds for lbfgsb
     self.bounds = zip(self.phi_min_global.array(), self.phi_max_global.array())
+    
+    # Array of objective function values
+    self.J_phi_vals = []
+    self.out = File("stuff/phi.pvd")
 
     
   # Python function version of the functional
   def __J_phi_func__(self, x):
     # Assign phi
     self.__set_phi__(x)
-    
-    #plot(self.phi, interactive = True)
-    
     # Function value of functional
     F =  assemble(self.J_phi)
-    
     # Scale and return the value
     return self.model.opt_params['scale'] * F
     
@@ -155,6 +157,8 @@ class PhiSolver(object):
   # is the usual solver tolerance and scale rescales the problem. Increasing the
   # scale can prevent premature convergence
   def __solve_opt__(self):
+    # Clear the list of objective functions values
+    self.J_phi_vals = []
     # Tolerance
     tol = self.model.opt_params['tol']
     # Gather phi into a single vector called phi_global
@@ -170,9 +174,17 @@ class PhiSolver(object):
                           
     # Now assign phi_opt to phi
     self.__set_phi__(phi_opt)
+    
     # Reset phi global of petsc will complain
     self.phi_global = Vector()
+    
 
+  # Callback function for bfgs    
+  def __bfgs_callback__(self, xk):
+    self.model.update_phi()
+    self.out << self.model.pfo
+    # Get the value of the objective function
+    self.J_phi_vals.append(self.__J_phi_func__(xk))
 
   # External function that solves optimization problem for model.phi then updates 
   # any fields related to phi 

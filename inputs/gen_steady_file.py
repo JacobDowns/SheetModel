@@ -8,8 +8,8 @@ Created on Fri Jan 22 12:59:04 2016
 from dolfin import *
 
 
-input_file = HDF5File(mpi_comm_world(), 'inputs_is_outlets_steady.hdf5', 'r')
-output_file = HDF5File(mpi_comm_world(), 'inputs_is_outlets_steady1.hdf5', 'w')
+input_file = HDF5File(mpi_comm_world(), 'steady_ref/out.hdf5', 'r')
+output_file = HDF5File(mpi_comm_world(), 'steady_ref/steady_ref.hdf5', 'w')
 
 # Load the mesh
 mesh = Mesh()
