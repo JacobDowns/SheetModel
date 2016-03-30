@@ -23,10 +23,10 @@ model_inputs = {}
 model_inputs['input_file'] = 'inputs_channel/inputs_channel_ref.hdf5'
 model_inputs['newton_params'] = prm
 
-k_min = 5e-4
+k_min = 5e-3
 k_max = 5e-2
-k_c_min = 5e-2
-k_c_max = 5e-1
+k_c_min = 1e-2
+k_c_max = 1e-1
 ks = np.linspace(k_min, k_max, 5)
 k_cs = np.linspace(k_c_min, k_c_max, 5)
 
