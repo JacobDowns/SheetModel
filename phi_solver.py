@@ -21,6 +21,8 @@ class PhiSolver(object):
     phi = model.phi
     # Potential at previous time step
     phi_prev = model.phi_prev
+    # Potential at 0 pressure
+    phi_m = model.phi_m
     # Potential at overburden pressure
     phi_0 = model.phi_0
     # Bump height
@@ -45,6 +47,10 @@ class PhiSolver(object):
     e_v = model.pcs['e_v']
     # Gravitational acceleration
     g = model.pcs['g']
+    # Specific heat capacity of ice
+    c_w = model.pcs['c_w']
+    # Pressure melting coefficient (J / (kg * K))
+    c_t = model.pcs['c_t'] 
     # Exponents
     alpha = model.pcs['alpha']
     delta = model.pcs['delta']
@@ -73,7 +79,7 @@ class PhiSolver(object):
     # Normal and tangent vectors 
     n = FacetNormal(model.mesh)
     t = as_vector([n[1], -n[0]])
-    # Derivative of phi along channel 
+    # Derivative of phi along channel s
     dphi_ds = dot(grad(phi), t)
     # Discharge through channels
     Q = -Constant(k_c) * S_alpha * abs(dphi_ds + Constant(phi_reg))**delta * dphi_ds
@@ -81,10 +87,16 @@ class PhiSolver(object):
     q_c = -k * h**alpha * abs(dphi_ds + Constant(phi_reg))**delta * dphi_ds
     # Energy dissipation 
     Xi = abs(Q * dphi_ds) + abs(Constant(l_c) * q_c * dphi_ds)
+    # Derivative of water pressure along channels
+    dpw_ds = dot(grad(phi - phi_m), t)
+    # Switch to turn refreezing on or of
+    f = conditional(gt(S,0.0),1.0,0.0)
+    # Sensible heat change
+    Pi = Constant(-c_t * c_w * rho_w) * (Q + f * l_c * q_c) * dpw_ds
     # Channel creep closure rate
     v_c = Constant(A) * S * N**3
     # Another channel source term
-    w_c = (Xi / Constant(L)) * Constant((1. / rho_i) - (1. / rho_w))
+    w_c = ((Xi - Pi) / Constant(L)) * Constant((1. / rho_i) - (1. / rho_w))
     
 
     ### Set up the PDE for the potential ###

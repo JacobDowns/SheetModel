@@ -19,6 +19,8 @@ class HSSolver():
     N_cr = model.N_cr
     # Derivative of phi over edges    
     dphi_ds_cr = model.dphi_ds_cr
+    # Derivative of water pressure over edges
+    dpw_ds_cr = model.dpw_ds_cr
     # Sliding speed
     u_b = model.u_b
     # Sheet conductivity
@@ -39,6 +41,12 @@ class HSSolver():
     k_c = model.pcs['k_c']
     # Sheet width under channel
     l_c = model.pcs['l_c']
+    # Specific heat capacity of ice
+    c_w = model.pcs['c_w']
+    # Pressure melting coefficient (J / (kg * K))
+    c_t = model.pcs['c_t'] 
+    # Ice density
+    rho_w = model.pcs['rho_w']
     # Exponent
     alpha = model.pcs['alpha']
     delta = model.pcs['delta']
@@ -92,10 +100,14 @@ class HSSolver():
       q_n = k_cr.vector().array() * h_n**alpha * abs(phi_s + phi_reg)**delta * phi_s
       # Dissipation melting due to turbulent flux
       Xi_n = abs(Q_n * phi_s) + abs(l_c * q_n * phi_s)
+      # Switch to turn refreezing on or of
+      f_n = S_n > 0.0
+      # Sensible heat change
+      Pi_n = (-c_t * c_w * rho_w) * (Q_n + f_n * l_c * q_n) * dpw_ds_cr.vector().array()
       # Creep closure
       v_c_n = A * S_n * N_n**3
       # Total opening rate
-      v_o_n = Xi_n / (rho_i * L)
+      v_o_n = (Xi_n -Pi_n) / (rho_i * L)
       # Dissalow negative opening rate where the channel area is 0
       #v_o_n[v_o_n[S_n == 0.0] < 0.0] = 0.0
       # Calculate rate of channel size change

@@ -52,6 +52,8 @@ class ChannelModel(Model):
     self.mask = Function(self.V_cr)
     # Derivative of potential over channel edges
     self.dphi_ds_cr = Function(self.V_cr)
+    # Derivative of water pressure over channel edges
+    self.dpw_ds_cr = Function(self.V_cr)
     # Effective pressure on edges
     self.N_cr = Function(self.V_cr)
     # Sheet height on edges
@@ -187,6 +189,8 @@ class ChannelModel(Model):
     self.output_file.write(self.H, "H")
     self.output_file.write(self.boundaries, "boundaries")
     self.output_file.write(self.S, "S_0")    
+    self.output_file.write(self.k, "k_0")
+    self.output_file.write(interpolate(Constant(self.pcs['k_c']), self.V_cg), "k_c_0") 
     
   
   # Initialize model using the state at the end of a previous simulation
@@ -228,7 +232,7 @@ class ChannelModel(Model):
       # Melt input
       self.assign_func(self.m, "m_0")
       # Sliding speed
-      self.assign_func(self.u_b, "u_b_0")
+      self.assign_func(self.u_b, "u_b_0")   
   
     except Exception as e:
       # If we can't find one of these model inputs we're done 
@@ -279,6 +283,7 @@ class ChannelModel(Model):
     self.update_N()
     self.update_pfo()
     self.update_dphi_ds_cr()
+    self.update_dpw_ds_cr()
     self.update_N_cr()
 
 
@@ -295,6 +300,11 @@ class ChannelModel(Model):
   # Update the edge derivatives of the potential to reflect current value of phi
   def update_dphi_ds_cr(self):
     self.cr_tools.ds(self.phi, self.dphi_ds_cr)
+    
+  
+  # Update the edge derivatives of water pressure to reflect current value water pressure
+  def update_dpw_ds_cr(self):
+    self.cr_tools.ds(self.p_w, self.dpw_ds_cr)
     
   
   # Update effective pressure on edge midpoints to reflect current value of phi
