@@ -25,7 +25,7 @@ model_inputs['newton_params'] = prm
 
 k_min = 5e-4
 k_max = 5e-2
-k_c_min = 5e-3
+k_c_min = 5e-2
 k_c_max = 5e-1
 ks = np.linspace(k_min, k_max, 5)
 k_cs = np.linspace(k_c_min, k_c_max, 5)
@@ -38,7 +38,7 @@ def run():
   # End time
   T = 500.0 * spd
   # Time step
-  dt = spd
+  dt = spd / 2.0
   # Iteration count
   i = 0
   
