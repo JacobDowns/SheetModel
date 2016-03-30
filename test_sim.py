@@ -14,8 +14,8 @@ MPI_rank = MPI.rank(mpi_comm_world())
 
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
-prm['newton_solver']['relative_tolerance'] = 1e-5
-prm['newton_solver']['absolute_tolerance'] = 1e-5
+prm['newton_solver']['relative_tolerance'] = 1e-6
+prm['newton_solver']['absolute_tolerance'] = 1e-6
 prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 25
 
@@ -33,7 +33,7 @@ model = ChannelModel(model_inputs)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 90.0 * spd
+T = 300.0 * spd
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
