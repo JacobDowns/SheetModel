@@ -35,7 +35,7 @@ spd = pcs['spd']
 # End time
 T = 500.0 * spd
 # Time step
-dt = spd / 2.0
+dt = 60.0 * 60.0 * 8.0
 # Iteration count
 i = 0
 
