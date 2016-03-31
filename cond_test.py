@@ -38,7 +38,7 @@ def run():
   # End time
   T = 500.0 * spd
   # Time step
-  dt = spd / 2.0
+  dt = spd / 3.0
   # Iteration count
   i = 0
   
