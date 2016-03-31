@@ -1,6 +1,7 @@
 """
 This script generates all fields such as ice thickness, bed elevation, and melt
-needed to run the model for an ice sheet on a flat bed. High melt variant.
+needed to run the model for an ice sheet on a flat bed. Compares directly to 
+the first synthetic run in Mauro's paper.
 """
 
 from dolfin import *
@@ -15,18 +16,13 @@ V_cg = FunctionSpace(mesh, "CG", 1)
 V_cr = FunctionSpace(mesh, "CR", 1)
 
 # Write inputs to a hdf5 file
-f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_channel_ref.hdf5", 'w')
+f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_channel_comparison.hdf5", 'w')
 # Write the mesh to a file
-f.write(mesh, "mesh")
-
-# Melt
-m = project(Expression("(1.0 + (4.0 * (60000.0 - x[0]) / 60000.0)) / 31536000.0"), V_cg)
-f.write(m, "m_0")
-
+f.write(mesh, "mesh")        
+        
 # Sliding speed
-u_b = project(Expression("(50.0 + 250.0 * (60000.0 - x[0]) / 60000.0) / 31536000.0"), V_cg)
+u_b = project(Constant(1e-6), V_cg)
 f.write(u_b, "u_b_0")
-
 
 ### Bed and surface functions
 
@@ -41,8 +37,8 @@ class Bed(Expression):
 
 class Surface(Expression):
   def eval(self,value,x):
-    value[0] = sqrt((x[0] + 300.0) * h_max**2 / length)
-
+    value[0] = sqrt((x[0] + 325.0) * h_max**2 / length)
+    
 # Surface
 S = project(Surface(), V_cg)
 # Bed elevation
@@ -50,8 +46,19 @@ B = project(Bed(), V_cg)
 # Ice thickness
 H = project(S - B, V_cg)
 
+
 f.write(B, "B")
 f.write(H, "H")
+
+# Melt
+day = 60.0 * 60.0 * 24.0        
+class Melt(Expression):
+  def eval(self,value,x):
+    value[0] = max((0.14 - sqrt(x[0] * h_max**2 / length) * 1e-4) / day, 0.0)
+
+m = project(Melt(), V_cg)
+plot(m, interactive = True)
+f.write(m, "m_0")
 
 # Initial pressure
 # Potential at 0 pressure
@@ -61,6 +68,7 @@ p_i = project(pcs['rho_i'] * pcs['g'] * H, V_cg)
 # Potential at overburden pressure
 phi_0 = project(phi_m + p_i, V_cg)
 f.write(phi_0, "phi_0")
+
 
 ### Create a facet function with marked boundaries
 
