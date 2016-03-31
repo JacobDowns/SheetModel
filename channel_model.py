@@ -280,9 +280,9 @@ class ChannelModel(Model):
   # Updates all fields derived from phi
   def update_phi(self):
     self.phi_prev.assign(self.phi)
+    self.update_dphi_ds_cr()
     self.update_pw()
     self.update_N()
-    self.update_dphi_ds_cr()
 
 
   # Updates all fields derived from h    
@@ -307,7 +307,6 @@ class ChannelModel(Model):
   
   # Update effective pressure on edge midpoints to reflect current value of phi
   def update_N_cr(self):
-    self.update_N()
     self.cr_tools.midpoint(self.N, self.N_cr)
     
   
