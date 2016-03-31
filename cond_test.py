@@ -44,6 +44,9 @@ def run():
   
   while model.t < T:  
     
+    if model.t > 30.0 * spd:
+      dt = spd
+    
     if MPI_rank == 0: 
       current_time = model.t / spd
       #print "Current Time: " + str(current_time)
@@ -51,7 +54,7 @@ def run():
     
     model.step(dt)
     
-    if i % 1 == 0:
+    if i % 3 == 0:
       model.write_pvds(['pfo', 'h', 'S'])
       
     if i % 1 == 0:
