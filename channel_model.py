@@ -259,20 +259,19 @@ class ChannelModel(Model):
   def update_N(self):
     self.N.vector().set_local(self.phi_0.vector().array() - self.phi.vector().array())
     self.N.vector().apply("insert")
+    self.update_N_cr()
     
   
   # Update the water pressure to reflect current value of phi
   def update_pw(self):
     self.p_w.vector().set_local(self.phi.vector().array() - self.phi_m.vector().array())
     self.p_w.vector().apply("insert")
+    self.update_pfo()
     
   
   # Update the pressure as a fraction of overburden to reflect the current 
   # value of phi
   def update_pfo(self):
-    # Update water pressure
-    self.update_pw()
-  
     # Compute overburden pressure
     self.pfo.vector().set_local(self.p_w.vector().array() / self.p_i.vector().array())
     self.pfo.vector().apply("insert")
@@ -280,11 +279,10 @@ class ChannelModel(Model):
   
   # Updates all fields derived from phi
   def update_phi(self):
+    self.phi_prev.assign(self.phi)
+    self.update_pw()
     self.update_N()
-    self.update_pfo()
     self.update_dphi_ds_cr()
-    self.update_dpw_ds_cr()
-    self.update_N_cr()
 
 
   # Updates all fields derived from h    
