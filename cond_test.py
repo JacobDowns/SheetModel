@@ -23,10 +23,10 @@ model_inputs = {}
 model_inputs['input_file'] = 'inputs_channel/inputs_channel_ref.hdf5'
 model_inputs['newton_params'] = prm
 
-k_min = 5e-3
+k_min = 5e-4
 k_max = 5e-2
 k_c_min = 1e-2
-k_c_max = 1e-1
+k_c_max = 1
 ks = np.linspace(k_min, k_max, 5)
 k_cs = np.linspace(k_c_min, k_c_max, 5)
 
@@ -36,7 +36,7 @@ def run():
   # Seconds per day
   spd = pcs['spd']
   # End time
-  T = 500.0 * spd
+  T = 550.0 * spd
   # Time step
   dt = spd / 3.0
   # Iteration count
@@ -73,8 +73,8 @@ for c in itertools.product(ks, k_cs):
   pcs['k'] = k
   pcs['k_c'] = k_c
   model_inputs['constants'] = pcs
-  model_inputs['out_dir'] = 'out_channel_k_' + str(k) + "_k_c_" + str(k_c)
-  model_inputs['checkpoint_file'] = 'out_channel_k_' + str(k) + "_k_c_" + str(k_c)
+  model_inputs['out_dir'] = 'cond_test/out_channel_k_' + str(k) + "_k_c_" + str(k_c)
+  model_inputs['checkpoint_file'] = 'cond_test/out_channel_k_' + str(k) + "_k_c_" + str(k_c)
 
   model = ChannelModel(model_inputs)
   run()
