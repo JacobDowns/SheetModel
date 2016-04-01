@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Reference simulation over the winter. 
+Reference simulation for trough bedrock over the winter. 
 """
 
 from dolfin import *
@@ -20,8 +20,8 @@ prm['newton_solver']['maximum_iterations'] = 25
 model_inputs = {}
 pcs['k'] = 5e-3
 pcs['k_c'] = 1e-1
-model_inputs['input_file'] = 'inputs_channel/inputs_channel_ref.hdf5'
-model_inputs['out_dir'] = 'out_channel_ref/'
+model_inputs['input_file'] = 'inputs_channel/inputs_channel_ref_trough.hdf5'
+model_inputs['out_dir'] = 'out_channel_ref_trough/'
 model_inputs['constants'] = pcs
 model_inputs['newton_params'] = prm
 
