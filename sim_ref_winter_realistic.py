@@ -29,8 +29,10 @@ model_inputs['newton_params'] = prm
 model = ChannelModel(model_inputs)
 
 
-
 ### Set up scaling functions for time dependent m, k, and u_b
+
+m = Function(model.V_cg)
+m.assign(model.m)
 
 # Seconds per day
 spd = pcs['spd']
