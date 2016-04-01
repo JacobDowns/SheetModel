@@ -33,6 +33,8 @@ model = ChannelModel(model_inputs)
 
 m = Function(model.V_cg)
 m.assign(model.m)
+u_b = Function(model.V_cg)
+u_b.assign(model.u_b)
 
 # Seconds per day
 spd = pcs['spd']
