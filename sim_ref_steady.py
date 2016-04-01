@@ -18,7 +18,7 @@ prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 25
 
 model_inputs = {}
-pcs['k'] = 1e-2
+pcs['k'] = 5e-3
 pcs['k_c'] = 1e-1
 model_inputs['input_file'] = 'inputs_channel/inputs_channel_ref.hdf5'
 model_inputs['out_dir'] = 'out_channel_ref/'
