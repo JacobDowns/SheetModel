@@ -21,7 +21,7 @@ model_inputs = {}
 pcs['k'] = 5e-3
 pcs['k_c'] = 1e-1
 model_inputs['input_file'] = 'inputs_channel/channel_ref_steady.hdf5'
-model_inputs['out_dir'] = 'out_channel_ref/'
+model_inputs['out_dir'] = 'out_channel_ref_winter/'
 model_inputs['constants'] = pcs
 model_inputs['newton_params'] = prm
 
