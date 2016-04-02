@@ -61,7 +61,7 @@ a = (k_max - k_min) / m.vector().max()
 b = spd
 # Function that scales k proportionally to m
 def k_scale(t):
-  return a * m_scale(t - spd)
+  return a * m_scale(t - b)
   
 # Create a function that scales u_b down to a maximum of 80 (m/a) in winter
 c = (80.0 / pcs['spy']) / u_b.vector().max()

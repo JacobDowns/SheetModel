@@ -21,7 +21,7 @@ model_inputs = {}
 pcs['k'] = 5e-3
 pcs['k_c'] = 1e-1
 model_inputs['input_file'] = 'inputs_channel/channel_ref_steady_realistic.hdf5'
-model_inputs['out_dir'] = 'channel_realistic/out_channel_ref_realistic_winter_week_lag/'
+model_inputs['out_dir'] = 'channel_realistic/out_channel_ref_realistic_winter_day_lag/'
 model_inputs['constants'] = pcs
 model_inputs['newton_params'] = prm
 
@@ -58,7 +58,7 @@ k_min = 5e-5
 # Scaling parameter that sets the maximum possible conductivity
 a = (k_max - k_min) / m.vector().max()
 # Lag 
-b = 7.0 * spd
+b = 30.0 * spd
 # Function that scales k proportionally to m
 def k_scale(t):
   return a * m_scale(t - b)
