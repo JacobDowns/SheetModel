@@ -8,7 +8,6 @@ from constants import *
 from channel_model import *
 from dolfin import MPI, mpi_comm_world
 from scale_functions import *
-import pylab as plt
 
 MPI_rank = MPI.rank(mpi_comm_world())
 
