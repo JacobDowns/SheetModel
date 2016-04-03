@@ -343,14 +343,14 @@ class ChannelModel(Model):
       if 'u' in to_write:
         self.u_out << self.phi_solver.u
       if 'm' in to_write:
-        self.m_out << self.m_func
+        self.m_out << self.m
       if 'u_b' in to_write:
-        self.u_b_out << self.u_b_func
+        self.u_b_out << self.u_b
       if 'q' in to_write:
         self.q_func.assign(project(self.phi_solver.q, self.V_cg))
         self.q_out << self.q_func
       if 'k' in to_write:
-        self.k_out << self.k_func
+        self.k_out << self.k
       if 'S' in to_write:
         self.cr_tools.copy_cr_to_facet(self.S, self.ff_out_S)
         self.S_out << self.ff_out_S
