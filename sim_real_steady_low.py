@@ -26,12 +26,11 @@ k = scale_functions.get_k(0.0)
 ### Setup the model
 
 model_inputs = {}
-pcs['k'] = k
 pcs['k_c'] = 1e-1
+model_inputs['k'] = k
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = 'channel_results/out_sim_real_steady_low'
 model_inputs['constants'] = pcs
-model_inputs['newton_params'] = prm
 
 # Create the sheet model
 model = ChannelModel(model_inputs)
