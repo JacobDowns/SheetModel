@@ -20,14 +20,13 @@ k_max = 5e-3
 input_file = 'inputs_channel/inputs/inputs_low.hdf5'
 
 scale_functions = ScaleFunctions(input_file, k_min, k_max)
-k = scale_functions.get_k(0.0)
 
 
 ### Setup the model
 
 model_inputs = {}
 pcs['k_c'] = 1e-1
-model_inputs['k'] = k
+model_inputs['k'] = scale_functions.get_k(0.0)
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = 'channel_results/out_sim_real_steady_low'
 model_inputs['constants'] = pcs

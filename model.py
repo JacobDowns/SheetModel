@@ -128,6 +128,7 @@ class Model(object):
         # If the input isn't there either raise an exception
         raise Exception("Could not load model input: " + str(name))
 
+
   # Assigns a value to a function. Looks in the model inputs dictionary then
   # the inputs file        
   def assign_func(self, f, name):

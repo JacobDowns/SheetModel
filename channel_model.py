@@ -243,6 +243,7 @@ class ChannelModel(Model):
     try :
       # If we get a hydraulic conductivity expression or function use it
       self.assign_func(self.k, 'k')
+      self.k = project(self.k, self.V_cg)
     except :
       # Otherwise we'll just use use the default constant conductivity 
       self.k.assign(interpolate(Constant(self.pcs['k']), self.V_cg))
