@@ -35,6 +35,6 @@ pcs['c_t'] = 7.5e-8
 # Latent heat (J / kg)
 pcs['L'] = 3.34e5
 # Void storage ratio
-pcs['e_v'] = 1e-3
+pcs['e_v'] = 8.5e-4
 # Sheet width under channel (m)
 pcs['l_c'] = 2.0   
