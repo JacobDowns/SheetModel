@@ -52,7 +52,7 @@ class ScaleFunctions(object):
 
 
   # Sliding speed scale function
-  def u_b_scale(t):
+  def u_b_scale(self, t):
     return -self.m_scale(t) * (self.c - 1.0) + self.c
 
     

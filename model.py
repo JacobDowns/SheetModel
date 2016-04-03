@@ -132,7 +132,7 @@ class Model(object):
   # the inputs file        
   def assign_func(self, f, name):
     if name in self.model_inputs:
-      f.assign(model_inputs[name])
+      f.assign(self.model_inputs[name])
     else :
       self.input_file.read(f, name)
     
