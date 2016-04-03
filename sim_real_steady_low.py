@@ -65,4 +65,4 @@ while model.t < T:
     
   i += 1
   
-model.write_steady_file('steady/real_steady_high')
+model.write_steady_file('steady/real_steady_low')
