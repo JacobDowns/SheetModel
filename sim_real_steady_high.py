@@ -20,14 +20,13 @@ k_max = 5e-3
 input_file = 'inputs_channel/inputs/inputs_high.hdf5'
 
 scale_functions = ScaleFunctions(input_file, k_min, k_max)
-k = scale_functions.get_k(0.0)
 
 
 ### Setup the model
 
 model_inputs = {}
 pcs['k_c'] = 1e-1
-model_inputs['k'] = k
+model_inputs['k'] = scale_functions.get_k(0.0)
 model_inputs['input_file'] = input_file
 model_inputs['out_dir'] = 'channel_results/out_sim_real_steady_high/'
 model_inputs['constants'] = pcs
@@ -41,13 +40,13 @@ model = ChannelModel(model_inputs)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 550.0 * spd
+T = 650.0 * spd
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
 i = 0
 
-while model.t < T:  
+while model.t < T:
   if MPI_rank == 0: 
     current_time = model.t / spd
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
