@@ -414,7 +414,7 @@ class ChannelModel(Model):
     output_file.write(self.boundaries, "boundaries")
     output_file.write(self.edge_lens, "edge_lens")
     output_file.write(self.k, "k_0")
-    output_file.write(self.k_c, "k_c_0")
+    output_file.write(self.k_cr, "k_c_0")
     output_file.write(self.mask, "mask")
     output_file.write(self.phi, "phi_0")
     
