@@ -40,7 +40,7 @@ model = ChannelModel(model_inputs)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 5.0 * spd
+T = 600.0 * spd
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
@@ -65,5 +65,3 @@ while model.t < T:
   i += 1
   
 model.write_steady_file('steady/real_steady_low')
-
-plot(model.k, interactive = True)
