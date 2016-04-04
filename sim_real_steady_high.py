@@ -70,3 +70,5 @@ while model.t < T:
     print
     
   i += 1
+  
+model.write_steady_file('inputs_sheet/steady/high_steady')
