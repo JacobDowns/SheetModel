@@ -29,7 +29,7 @@ model_inputs = {}
 pcs['k_c'] = 1e-1
 model_inputs['k'] = k
 model_inputs['input_file'] = input_file
-model_inputs['out_dir'] = 'channel_results/out_sim_real_trough_steady_high/'
+model_inputs['out_dir'] = 'channel_results/out_real_trough_steady_high/'
 model_inputs['constants'] = pcs
 
 # Create the sheet model
@@ -65,4 +65,4 @@ while model.t < T:
     
   i += 1
   
-model.write_steady_file('steady/real_trough_steady_high')
+model.write_steady_file('inputs_channel/steady/real_trough_steady_high')
