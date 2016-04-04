@@ -3,7 +3,6 @@ from dolfin import MPI, mpi_comm_world
 from colored import fg, attr
 from scipy.optimize import fmin_l_bfgs_b
 import numpy as np
-import pylab as plt
 
 """ Solves phi with h fixed."""
 
@@ -36,7 +35,7 @@ class PhiSolver(object):
     # Sheet conductivity
     k = model.k
     # Bump height
-    h_r = model.pcs['h_r']
+    h_r = model.h_r
     # Distance between bumps
     l_r = model.pcs['l_r']
     # Exponents

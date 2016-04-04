@@ -8,12 +8,12 @@ import numpy as np
 from constants import *
 
 # Directory to write model inputs
-out_dir = "inputs/"
-mesh = Mesh(out_dir + "mesh.xml")
+out_dir = "inputs_sheet/inputs/"
+mesh = Mesh("inputs_sheet/mesh_60_20.xml")
 V_cg = FunctionSpace(mesh, "CG", 1)
 
 # Write inputs to a hdf5 file
-f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_ref.hdf5", 'w')
+f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_high.hdf5", 'w')
 # Write the mesh to a file
 f.write(mesh, "mesh")
 
