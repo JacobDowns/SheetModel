@@ -17,7 +17,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 input_file = 'inputs_channel/steady/real_steady_high.hdf5'
 k_min = 5e-5
 k_max = 5e-3
-scale_functions = ScaleFunctions(input_file, k_min, k_max, u_b_max = 80., shutoff_length = pcs['spd'] * spd)
+scale_functions = ScaleFunctions(input_file, k_min, k_max, u_b_max = 80., shutoff_length = 7.0 * pcs['spd'])
 
 
 ### Setup the model
