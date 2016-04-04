@@ -309,19 +309,16 @@ class SheetModel(Model):
   # Updates the melt rate function
   def set_m(self, new_m):
     self.m.assign(new_m)
-    self.m_func.assign(new_m)
     
   
   # Update sliding speed
   def set_u_b(self, new_u_b):
     self.u_b.assign(new_u_b)
-    self.u_b_func.assign(new_u_b)
     
     
   # Sets the hydraulic conductivity
   def set_k(self, new_k):
     self.k.assign(project(new_k, self.V_cg))
-    self.update_k()
   
   
   # Write out a steady state file we can use to start new simulations

@@ -55,7 +55,6 @@ while model.t < T:
   
   if MPI_rank == 0: 
     current_time = model.t / spd
-    #print "Current Time: " + str(current_time)
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
   model.step(dt)
