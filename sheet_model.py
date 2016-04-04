@@ -322,4 +322,19 @@ class SheetModel(Model):
   def set_k(self, new_k):
     self.k.assign(project(new_k, self.V_cg))
     self.update_k()
+  
+  
+  # Write out a steady state file we can use to start new simulations
+  def write_steady_file(self, output_file_name):
+    output_file = HDF5File(mpi_comm_world(), output_file_name + '.hdf5', 'w')
+
+    ### Write variables
+    output_file.write(self.mesh, "mesh")
+    output_file.write(self.B, "B")
+    output_file.write(self.H, "H")
+    output_file.write(self.m, 'm_0')
+    output_file.write(self.u_b, 'u_b_0')
+    output_file.write(self.h, "h_0")
+    output_file.write(self.boundaries, "boundaries")
+    output_file.write(self.k, "k_0")
     
