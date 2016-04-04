@@ -8,7 +8,7 @@ from constants import *
 
 class ScaleFunctions(object):
   
-  def __init__(self, input_file, k_min = 5e-5, k_max = pcs['k'], shutoff_length = 30.0 * pcs['spd'], u_b_max = 100.0, lag_time = 0.0):
+  def __init__(self, input_file, k_min = 5e-5, k_max = pcs['k'], m_max = 5.0, shutoff_length = 30.0 * pcs['spd'], u_b_max = 100.0, lag_time = 0.0):
     f = HDF5File(mpi_comm_world(), input_file, 'r') 
     
     # Get the mesh
@@ -29,7 +29,7 @@ class ScaleFunctions(object):
     # Maximum conductivity
     self.k_max = k_max
     # Scaling parameter that sets the maximum possible conductivity
-    self.a = (k_max - k_min) / self.m.vector().max()
+    self.a = (k_max - k_min) / (m_max / pcs['spy'])
     # Lag of conductivity behind melt
     self.b = lag_time
     # Parameter in the sliding speed scale function 
