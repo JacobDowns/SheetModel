@@ -64,7 +64,7 @@ def run_sim():
       model.write_pvds(['pfo', 'h', 'S'])
       
     if i % 1 == 0:
-      model.checkpoint(['h', 'phi', 'S'])
+      model.checkpoint(['h', 'phi', 'S', 'm', 'k'])
     
     if MPI_rank == 0: 
       print
