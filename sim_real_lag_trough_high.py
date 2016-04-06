@@ -29,10 +29,8 @@ pcs['k_c'] = 1e-1
 model_inputs['constants'] = pcs
 model_inputs['input_file'] = input_file
 
-#lag_times = [0.0, spd, 7.0 * spd, 30.0 * spd]
-#names = ['no', 'day', 'week', 'month']
-lag_times = [30.0 * spd]
-names = ['month']
+lag_times = [spd, 7.0 * spd, 30.0 * spd]
+names = ['day', 'week', 'month']
 
 
 ### Run the simulation
