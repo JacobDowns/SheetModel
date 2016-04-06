@@ -41,7 +41,7 @@ model = ChannelModel(model_inputs)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 550.0 * spd
+T = 650.0 * spd
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
