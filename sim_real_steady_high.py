@@ -28,7 +28,7 @@ model_inputs = {}
 pcs['k_c'] = 1e-1
 model_inputs['k'] = scale_functions.get_k(0.0)
 model_inputs['input_file'] = input_file
-model_inputs['out_dir'] = 'channel_results/out_sim_real_steady_high/'
+model_inputs['out_dir'] = 'channel_results/out_real_steady_high/'
 model_inputs['constants'] = pcs
 
 # Create the sheet model
@@ -40,7 +40,7 @@ model = ChannelModel(model_inputs)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 750.0 * spd
+T = 650.0 * spd
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Iteration count
@@ -64,4 +64,4 @@ while model.t < T:
     
   i += 1
   
-model.write_steady_file('steady/real_steady_high')
+model.write_steady_file('inputs_channel/steady/real_steady_high')
