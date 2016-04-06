@@ -40,7 +40,7 @@ def run_sim():
   # Seconds per month
   spm = pcs['spm']
   # End time
-  T = 2.0 * spm
+  T = 8.0 * spm
   # Time step
   dt = 60.0 * 60.0 * 8.0
   # Iteration count
