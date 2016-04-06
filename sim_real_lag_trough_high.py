@@ -43,7 +43,7 @@ def run_sim():
   # End time
   T = 2.0 * spm
   # Time step
-  dt = 60.0 * 60.0 * 1.0
+  dt = 60.0 * 60.0 * 8.0
   # Iteration count
   i = 0
   
