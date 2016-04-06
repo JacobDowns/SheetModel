@@ -43,7 +43,7 @@ def run_sim():
   # End time
   T = 2.0 * spm
   # Time step
-  dt = 60.0 * 60.0 * 4.0
+  dt = 60.0 * 60.0 * 1.0
   # Iteration count
   i = 0
   
@@ -62,7 +62,7 @@ def run_sim():
     model.step(dt)
     
     if i % 1 == 0:
-      model.write_pvds(['pfo', 'h', 'S'])
+      model.write_pvds(['pfo', 'h', 'S', 'm'])
       
     if i % 1 == 0:
       model.checkpoint(['h', 'phi', 'S', 'm', 'k'])
