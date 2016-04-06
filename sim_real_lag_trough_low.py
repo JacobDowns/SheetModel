@@ -29,7 +29,8 @@ pcs['k_c'] = 1e-1
 model_inputs['constants'] = pcs
 model_inputs['input_file'] = input_file
 
-lag_times = [0.0, spd, 7.0 * spd, 30.0 * spd]
+#lag_times = [0.0, spd, 7.0 * spd, 30.0 * spd]
+lag_times = [0.0]
 names = ['no', 'day', 'week', 'month']
 
 
@@ -40,9 +41,9 @@ def run_sim():
   # Seconds per month
   spm = pcs['spm']
   # End time
-  T = 8.0 * spm
+  T = 2.0 * spm
   # Time step
-  dt = 60.0 * 60.0 * 8.0
+  dt = 60.0 * 60.0 * 4.0
   # Iteration count
   i = 0
   
