@@ -29,8 +29,8 @@ pcs['k_c'] = 1e-1
 model_inputs['constants'] = pcs
 model_inputs['input_file'] = input_file
 
-lag_times = [0.0, spd, 7.0 * spd, 30.0 * spd]
-names = ['no', 'day', 'week', 'month']
+lag_times = [spd, 7.0 * spd, 30.0 * spd]
+names = ['day', 'week', 'month']
 
 
 ### Run the simulation
@@ -64,7 +64,7 @@ def run_sim():
       model.write_pvds(['pfo', 'h', 'S'])
       
     if i % 1 == 0:
-      model.checkpoint(['h', 'phi', 'S'])
+      model.checkpoint(['h', 'phi', 'S', 'k', 'm'])
     
     if MPI_rank == 0: 
       print
