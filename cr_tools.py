@@ -97,6 +97,7 @@ class CRTools(object):
     for i in range(len(f.vector().array())):
       self.local_edge_to_global_edge_index_map[i] = self.V_cr.dofmap().local_to_global_index(i)
 
+
   # Computes the directional derivative of a CG function over edges 
   def ds(self, cg, cr):
     self.U.assign(cg)

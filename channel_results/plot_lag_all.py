@@ -6,12 +6,14 @@ Created on Wed Oct  7 16:25:08 2015
 """
 
 from dolfin import *
+from cr_tools import *
 from pylab import *
 from constants import *
-from cr_tools import *
+
 
 matplotlib.rcParams.update({'font.size': 16})
 
+"""
 h1_out = File('lag/high_day_lag/h.pvd')
 h2_out = File('lag/low_day_lag/h.pvd')
 h3_out = File('lag/high_week_lag/h.pvd')
@@ -31,14 +33,14 @@ S2_out = File('lag/low_day_lag/S.pvd')
 S3_out = File('lag/high_week_lag/S.pvd')
 S4_out = File('lag/low_week_lag/S.pvd')
 S5_out = File('lag/high_month_lag/S.pvd')
-S6_out = File('lag/low_month_lag/S.pvd')
+S6_out = File('lag/low_month_lag/S.pvd')"""
 
-input_file1 = HDF5File(mpi_comm_world(), 'lag/high_day_lag.hdf5', 'r') 
-input_file2 = HDF5File(mpi_comm_world(), 'lag/low_day_lag.hdf5', 'r')
-input_file3 = HDF5File(mpi_comm_world(), 'lag/high_week_lag.hdf5', 'r')  
-input_file4 = HDF5File(mpi_comm_world(), 'lag/low_week_lag.hdf5', 'r')  
-input_file5 = HDF5File(mpi_comm_world(), 'lag/high_month_lag.hdf5', 'r')  
-input_file6 = HDF5File(mpi_comm_world(), 'lag/low_month_lag.hdf5', 'r')  
+input_file1 = HDF5File(mpi_comm_world(), 'lag_trough/high_day_lag.hdf5', 'r') 
+input_file2 = HDF5File(mpi_comm_world(), 'lag_trough/low_day_lag.hdf5', 'r')
+input_file3 = HDF5File(mpi_comm_world(), 'lag_trough/high_week_lag.hdf5', 'r')  
+input_file4 = HDF5File(mpi_comm_world(), 'lag_trough/low_week_lag.hdf5', 'r')  
+input_file5 = HDF5File(mpi_comm_world(), 'lag_trough/high_month_lag.hdf5', 'r')  
+input_file6 = HDF5File(mpi_comm_world(), 'lag_trough/low_month_lag.hdf5', 'r')  
 
 mesh = Mesh()
 input_file1.read(mesh, "mesh", False) 
@@ -122,7 +124,7 @@ T = 8.0 * spm
 # Time step
 dt = 60.0 * 60.0 * 8.0
 # Times
-ts = np.arange(0.0, T - spd, spd)
+ts = np.arange(0.0, T - spd, dt)
 
 ### Load all the data
 for i in range(len(ts)):
@@ -173,6 +175,7 @@ for i in range(len(ts)):
   v5.append(assemble(h5 * dx))
   v6.append(assemble(h6 * dx))
   
+  """
   pfo1_out << pfo1
   pfo2_out << pfo2
   pfo3_out << pfo3
@@ -199,7 +202,7 @@ for i in range(len(ts)):
   S3_out << ff_S3
   S4_out << ff_S4
   S5_out << ff_S5
-  S6_out << ff_S6
+  S6_out << ff_S6"""
 
 
 figure(0, (24, 7))
@@ -219,7 +222,7 @@ plot(ts / spm, avg_pfos5, 'b', linewidth = 2, label = 'High Melt, Month Lag')
 plot(ts / spm, avg_pfos6, 'b--', linewidth = 2, label = 'Low Melt, Month Lag')
 
 grid(True)
-legend(loc = 3)
+#legend(loc = 3)
 
 
 ### Plot sheet volume over time
@@ -240,6 +243,6 @@ plot(ts / spm, v5, 'b', linewidth = 2, label = 'High Melt, Month Lag')
 plot(ts / spm, v6, 'b--', linewidth = 2, label = 'Low Melt, Month Lag')
 
 grid(True)
-legend(loc = 3)
+legend(loc = 1)
 
 show()

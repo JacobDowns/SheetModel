@@ -9,13 +9,13 @@ from constants import *
 from cr_tools import *
 
 # Directory to write model inputs
-out_dir = "inputs_channel/"
-mesh = Mesh(out_dir + "mesh_60_20.xml")
+out_dir = "inputs_channel/inputs/"
+mesh = Mesh("inputs_channel/mesh_60_20.xml")
 V_cg = FunctionSpace(mesh, "CG", 1)
 V_cr = FunctionSpace(mesh, "CR", 1)
 
 # Write inputs to a hdf5 file
-f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_channel_ref_low.hdf5", 'w')
+f = HDF5File(mesh.mpi_comm(), out_dir + "inputs_low.hdf5", 'w')
 # Write the mesh to a file
 f.write(mesh, "mesh")
 
@@ -41,7 +41,7 @@ class Bed(Expression):
 
 class Surface(Expression):
   def eval(self,value,x):
-    value[0] = sqrt((x[0] + 50.0) * h_max**2 / length)
+    value[0] = sqrt((x[0] + 250.0) * h_max**2 / length)
 
 # Surface
 S = project(Surface(), V_cg)
