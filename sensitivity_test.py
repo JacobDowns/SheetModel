@@ -25,12 +25,14 @@ d = {}
 
 i = 0
 for c in itertools.product(ks, ubs):
-  print (i, len(ks) * len(ubs))
+
   k = c[0]
   ub = ubs[0]
   
-  print c
-  print ("k", k, "ub", ub)
+  if MPI_rank == 0:
+    print (i, len(ks) * len(ubs))
+    print c
+    print ("k", k, "ub", ub)
   
   model_inputs['checkpoint_file'] = 'k_' + str(k) + "_ub_" + str(ub)
   model = SheetModel(model_inputs)
