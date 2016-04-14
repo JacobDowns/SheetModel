@@ -27,11 +27,12 @@ ubs = linspace(0, 200, 25)
 model = SheetModel(model_inputs)
 h = Function(model.V_cg)
 h.assign(model.h)
+ model.set_m(Function(model.V_cg))
 
 i = 0
 for c in itertools.product(ks, ubs):
   k = c[0]
-  ub = ubs[0]
+  ub = c[1]
   
   if MPI_rank == 0:
     print (i, len(ks) * len(ubs))
@@ -39,7 +40,6 @@ for c in itertools.product(ks, ubs):
     print ("k", k, "ub", ub)
 
   model.set_h(h)
-  model.set_m(Function(model.V_cg))
   model.set_k(interpolate(Constant(k), model.V_cg))
   model.set_u_b(interpolate(Constant(ub), model.V_cg)) 
   
@@ -47,3 +47,5 @@ for c in itertools.product(ks, ubs):
   
   File(out_dir + "/pfo_" + str(i) + ".xml") << model.pfo
   i += 1
+  
+
