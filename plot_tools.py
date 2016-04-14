@@ -170,6 +170,7 @@ class PlotTools(object):
     out_S = File(out_file + 'S.pvd')
     
     for i in range(self.num_steps):
+      print ("i", i)
       out_h << self.get_h(i)
       out_pfo << self.get_pfo(i)
       out_S << self.get_S_ff(i)

@@ -81,5 +81,7 @@ for b in lag_times:
   model_inputs['out_dir'] = 'channel_results/real_lag_low/' +  name + '_lag'
   model_inputs['checkpoint_file'] = 'checkpoint/' +  name + '_lag'
   model = ChannelModel(model_inputs)
+  plot(model.m * pcs['spy'], interactive = True)  
+  quit()
   run_sim()
   i += 1
