@@ -319,6 +319,11 @@ class SheetModel(Model):
   # Sets the hydraulic conductivity
   def set_k(self, new_k):
     self.k.assign(project(new_k, self.V_cg))
+    
+    
+  # Sets the sheet height
+  def set_h(self, new_h):
+    self.h.assign(new_h)
   
   
   # Write out a steady state file we can use to start new simulations

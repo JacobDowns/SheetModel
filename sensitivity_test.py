@@ -1,5 +1,6 @@
 """
-Reference simulation over winter.
+Solve for pressure with a bunch of constant k, ub combinations with sheet 
+height fixed. 
 """
 
 from dolfin import *
@@ -13,19 +14,22 @@ import itertools
 # Process number
 MPI_rank = MPI.rank(mpi_comm_world())
 
+# Output directory
+out_dir = 'sensitivity_test'
+
 model_inputs = {}
 model_inputs['input_file'] = 'inputs/steady_ref/steady_ref.hdf5'
-out_dir = 'sensitivity_test'
 model_inputs['out_dir'] = 'sensitivity_test/'
 
 ks = linspace(5e-6, 5e-3, 25)
 ubs = linspace(0, 200, 25)
 
-d = {}
+model = SheetModel(model_inputs)
+h = Function(model.V_cg)
+h.assign(model.h)
 
 i = 0
 for c in itertools.product(ks, ubs):
-
   k = c[0]
   ub = ubs[0]
   
@@ -33,10 +37,8 @@ for c in itertools.product(ks, ubs):
     print (i, len(ks) * len(ubs))
     print c
     print ("k", k, "ub", ub)
-  
-  model_inputs['checkpoint_file'] = 'k_' + str(k) + "_ub_" + str(ub)
-  model = SheetModel(model_inputs)
-  
+
+  model.set_h(h)
   model.set_m(Function(model.V_cg))
   model.set_k(interpolate(Constant(k), model.V_cg))
   model.set_u_b(interpolate(Constant(ub), model.V_cg)) 
