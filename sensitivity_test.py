@@ -21,7 +21,7 @@ model_inputs = {}
 model_inputs['input_file'] = 'inputs/steady_ref/steady_ref.hdf5'
 model_inputs['out_dir'] = 'sensitivity_test/'
 
-ks = linspace(5e-6, 5e-3, 25)
+ks = linspace(5e-5, 5e-3, 25)
 ubs = linspace(0, 200, 25)
 
 model = SheetModel(model_inputs)
