@@ -27,7 +27,7 @@ ubs = linspace(0, 200, 25)
 model = SheetModel(model_inputs)
 h = Function(model.V_cg)
 h.assign(model.h)
- model.set_m(Function(model.V_cg))
+model.set_m(Function(model.V_cg))
 
 i = 0
 for c in itertools.product(ks, ubs):
