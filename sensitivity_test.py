@@ -29,7 +29,7 @@ model_inputs['input_file'] = 'inputs_sheet/steady/ref_steady.hdf5'
 model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
 
-ks = linspace(5e-5, 5e-3, 30)
+ks = linspace(1e-5, 5e-3, 30)
 ubs = linspace(0, 100, 30) / pcs['spy']
 
 model = SheetModel(model_inputs)
