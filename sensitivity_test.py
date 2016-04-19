@@ -18,7 +18,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 out_dir = 'sensitivity_test'
 
 model_inputs = {}
-model_inputs['input_file'] = 'inputs_sheet_/steady/ref_steady.hdf5'
+model_inputs['input_file'] = 'inputs_sheet/steady/ref_steady.hdf5'
 model_inputs['out_dir'] = 'sensitivity_test/'
 
 model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
