@@ -21,8 +21,10 @@ model_inputs = {}
 model_inputs['input_file'] = 'inputs/steady_ref/steady_ref.hdf5'
 model_inputs['out_dir'] = 'sensitivity_test/'
 
+model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
+
 ks = linspace(5e-5, 5e-3, 25)
-ubs = linspace(0, 200, 25)
+ubs = linspace(0, 200, 25) / pcs['spy']
 
 model = SheetModel(model_inputs)
 h = Function(model.V_cg)
