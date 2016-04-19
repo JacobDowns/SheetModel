@@ -1,5 +1,5 @@
 """
-Test simulation to make sure nothing is broken.
+Reference simulation steady state on a flat bed.
 """
 
 from dolfin import *
@@ -21,18 +21,14 @@ prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 30
 
 model_inputs = {}
-pcs['k'] = 2e-2
-pcs['alpha'] = 1.75
-model_inputs['input_file'] = 'inputs/inputs_ref.hdf5'
-model_inputs['out_dir'] = 'out_ref/'
+pcs['k'] = 1e-2
+model_inputs['input_file'] = 'inputs_sheet/inputs/inputs_high.hdf5'
+model_inputs['out_dir'] = 'paper_results/out_ref/'
 model_inputs['constants'] = pcs
 model_inputs['newton_params'] = prm
 
 # Create the sheet model
 model = SheetModel(model_inputs)
-
-plot(model.mesh, interactive = True)
-quit()
 
 
 ### Run the simulation
@@ -40,14 +36,13 @@ quit()
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 75.0 * spd
+T = 90.0 * spd
 # Time step
 dt = spd
 # Iteration count
 i = 0
 
 while model.t < T:  
-  
   if MPI_rank == 0: 
     current_time = model.t / spd
     #print "Current Time: " + str(current_time)
@@ -65,3 +60,5 @@ while model.t < T:
     print
     
   i += 1
+  
+model.write_steady_file('inputs_sheet/steady/ref_steady1')
