@@ -15,7 +15,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 
 # Scale functions for determining winter sliding speed
 input_file = 'inputs_sheet/steady/ref_steady.hdf5'
-scale_functions = ScaleFunctions(input_file, 5e-3, 5e-3, u_b_max = 0.0)
+scale_functions = ScaleFunctions(input_file, 5e-3, 5e-3, u_b_max = 80.0)
 
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
