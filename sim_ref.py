@@ -21,7 +21,7 @@ prm['newton_solver']['error_on_nonconvergence'] = False
 prm['newton_solver']['maximum_iterations'] = 30
 
 model_inputs = {}
-pcs['k'] = 1e-2
+pcs['k'] = 5e-3
 model_inputs['input_file'] = 'inputs_sheet/inputs/inputs_high.hdf5'
 model_inputs['out_dir'] = 'paper_results/out_ref/'
 model_inputs['constants'] = pcs
