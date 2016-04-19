@@ -26,7 +26,7 @@ prm['newton_solver']['maximum_iterations'] = 30
 
 model_inputs = {}
 model_inputs['input_file'] = input_file
-model_inputs['out_dir'] = 'out_no_sliding/'
+model_inputs['out_dir'] = 'out_ref_winter_sliding_only/'
 model_inputs['constants'] = pcs
 model_inputs['newton_params'] = prm
 
