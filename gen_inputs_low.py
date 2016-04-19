@@ -1,6 +1,6 @@
 """
 This script generates all fields such as ice thickness, bed elevation, and melt
-needed to run the model for an ice sheet on a flat bed. High melt variant.
+needed to run the model for an ice sheet on a flat bed. Low melt variant.
 """
 
 from dolfin import *

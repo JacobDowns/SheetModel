@@ -7,7 +7,7 @@ from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from sheet_model import *
 from constants import *
-from pylab import *
+from numpy import *
 import itertools
 
 
@@ -18,7 +18,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 out_dir = 'sensitivity_test'
 
 model_inputs = {}
-model_inputs['input_file'] = 'inputs/steady_ref/steady_ref.hdf5'
+model_inputs['input_file'] = 'inputs_sheet_/steady/ref_steady.hdf5'
 model_inputs['out_dir'] = 'sensitivity_test/'
 
 model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
@@ -30,6 +30,10 @@ model = SheetModel(model_inputs)
 h = Function(model.V_cg)
 h.assign(model.h)
 model.set_m(Function(model.V_cg))
+
+xs = project(Expression("x[0]"), model.V_cg)
+plot(xs, interactive = True)
+quit()
 
 i = 0
 for c in itertools.product(ks, ubs):
