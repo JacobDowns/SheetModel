@@ -17,11 +17,19 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Output directory
 out_dir = 'sensitivity_test'
 
+prm = NonlinearVariationalSolver.default_parameters()
+prm['newton_solver']['relaxation_parameter'] = 1.0
+prm['newton_solver']['relative_tolerance'] = 1e-6
+prm['newton_solver']['absolute_tolerance'] = 1e-6
+prm['newton_solver']['error_on_nonconvergence'] = False
+prm['newton_solver']['maximum_iterations'] = 35
+
 model_inputs = {}
 model_inputs['input_file'] = 'inputs_sheet/steady/ref_steady.hdf5'
 model_inputs['out_dir'] = 'sensitivity_test/'
+model_inputs['newton_params'] = prm
 
-model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
+#model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
 
 ks = linspace(5e-5, 5e-3, 25)
 ubs = linspace(0, 200, 25) / pcs['spy']
