@@ -15,7 +15,7 @@ import itertools
 MPI_rank = MPI.rank(mpi_comm_world())
 
 # Output directory
-out_dir = 'sensitivity_test'
+out_dir = 'paper_results/sensitivity_test'
 
 prm = NonlinearVariationalSolver.default_parameters()
 prm['newton_solver']['relaxation_parameter'] = 1.0
@@ -26,13 +26,11 @@ prm['newton_solver']['maximum_iterations'] = 35
 
 model_inputs = {}
 model_inputs['input_file'] = 'inputs_sheet/steady/ref_steady.hdf5'
-model_inputs['out_dir'] = 'paper_results/sensitivity_test/'
+model_inputs['out_dir'] = out_dir
 model_inputs['newton_params'] = prm
 
-#model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
-
-ks = linspace(5e-5, 5e-3, 25)
-ubs = linspace(0, 50, 25) / pcs['spy']
+ks = linspace(5e-5, 5e-3, 30)
+ubs = linspace(0, 100, 30) / pcs['spy']
 
 model = SheetModel(model_inputs)
 h = Function(model.V_cg)
