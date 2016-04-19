@@ -26,13 +26,13 @@ prm['newton_solver']['maximum_iterations'] = 35
 
 model_inputs = {}
 model_inputs['input_file'] = 'inputs_sheet/steady/ref_steady.hdf5'
-model_inputs['out_dir'] = 'sensitivity_test/'
+model_inputs['out_dir'] = 'paper_results/sensitivity_test/'
 model_inputs['newton_params'] = prm
 
 #model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
 
 ks = linspace(5e-5, 5e-3, 25)
-ubs = linspace(0, 200, 25) / pcs['spy']
+ubs = linspace(0, 20, 25) / pcs['spy']
 
 model = SheetModel(model_inputs)
 h = Function(model.V_cg)
@@ -54,6 +54,8 @@ for c in itertools.product(ks, ubs):
   model.set_u_b(interpolate(Constant(ub), model.V_cg)) 
   
   model.step(1.0)
+  
+  model.checkpoint(['k', 'u_b', 'pfo'])
   
   File(out_dir + "/pfo_" + str(i) + ".xml") << model.pfo
   i += 1
