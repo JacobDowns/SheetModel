@@ -31,10 +31,6 @@ h = Function(model.V_cg)
 h.assign(model.h)
 model.set_m(Function(model.V_cg))
 
-xs = project(Expression("x[0]"), model.V_cg)
-plot(xs, interactive = True)
-quit()
-
 i = 0
 for c in itertools.product(ks, ubs):
   k = c[0]
