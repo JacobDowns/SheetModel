@@ -61,4 +61,4 @@ while model.t < T:
     
   i += 1
   
-model.write_steady_file('inputs_sheet/steady/ref_steady1')
+model.write_steady_file('inputs_sheet/steady/ref_steady')
