@@ -32,7 +32,7 @@ model_inputs['newton_params'] = prm
 #model_inputs['opt_params']= {'tol' : 1e-3, 'scale' : 50}
 
 ks = linspace(5e-5, 5e-3, 25)
-ubs = linspace(0, 20, 25) / pcs['spy']
+ubs = linspace(0, 50, 25) / pcs['spy']
 
 model = SheetModel(model_inputs)
 h = Function(model.V_cg)
