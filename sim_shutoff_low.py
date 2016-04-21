@@ -21,11 +21,19 @@ scale_functions = ScaleFunctions(input_file, k_min, k_max, u_b_max = 80.0)
 
 ### Setup the model
 
+prm = NonlinearVariationalSolver.default_parameters()
+prm['newton_solver']['relaxation_parameter'] = 1.0
+prm['newton_solver']['relative_tolerance'] = 1e-6
+prm['newton_solver']['absolute_tolerance'] = 1e-6
+prm['newton_solver']['error_on_nonconvergence'] = False
+prm['newton_solver']['maximum_iterations'] = 30
+
 # Seconds per day
 spd = pcs['spd']
 model_inputs = {}
 model_inputs['constants'] = pcs
 model_inputs['input_file'] = input_file
+model_inputs['newton_params'] = prm
 
 shutoff_times = [spd, 7.0 * spd, 30.0 * spd]
 names = ['day', 'week', 'month']
