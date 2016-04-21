@@ -54,9 +54,9 @@ def run_sim(name):
   
   while model.t < T:  
     if name == 'day' and model.t <= spd:
-      dt = 60.0 * 60.0 * 1.0
+      dt = 60.0 * 30.0
     elif name == 'week' and model.t <= 7.0 * spd:
-      dt = 60.0 * 60.0 * 1.0
+      dt = 60.0 * 30.0
     else :
       dt = 60.0 * 60.0 * 8.0
       
