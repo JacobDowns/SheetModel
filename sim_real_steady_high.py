@@ -14,7 +14,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 
 ###  Create a spatially varying conductivity field
 
-k_min = 5e-5
+k_min = 1e-5
 k_max = 5e-3
 input_file = 'inputs_sheet/inputs/inputs_high.hdf5'
 scale_functions = ScaleFunctions(input_file, k_min, k_max)
@@ -32,7 +32,7 @@ prm['newton_solver']['maximum_iterations'] = 30
 model_inputs = {}
 model_inputs['k'] = scale_functions.get_k(0.0)
 model_inputs['input_file'] = input_file
-model_inputs['out_dir'] = 'sheet_results/out_sim_real_steady_high/'
+model_inputs['out_dir'] = 'sheet_results/out_real_steady_high/'
 model_inputs['constants'] = pcs
 model_inputs['newton_params'] = prm
 
@@ -70,4 +70,4 @@ while model.t < T:
     
   i += 1
   
-model.write_steady_file('inputs_sheet/steady/high_steady')
+model.write_steady_file('inputs_sheet/steady/real_high_steady')

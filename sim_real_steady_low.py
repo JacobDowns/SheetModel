@@ -32,7 +32,7 @@ prm['newton_solver']['maximum_iterations'] = 30
 model_inputs = {}
 model_inputs['k'] = scale_functions.get_k(0.0)
 model_inputs['input_file'] = input_file
-model_inputs['out_dir'] = 'sheet_results/out_sim_real_steady_low/'
+model_inputs['out_dir'] = 'sheet_results/out_real_steady_low/'
 model_inputs['constants'] = pcs
 model_inputs['newton_params'] = prm
 
@@ -55,7 +55,6 @@ while model.t < T:
   
   if MPI_rank == 0: 
     current_time = model.t / spd
-    #print "Current Time: " + str(current_time)
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
   model.step(dt)
@@ -71,4 +70,4 @@ while model.t < T:
     
   i += 1
   
-model.write_steady_file('inputs_sheet/steady/low_steady')
+model.write_steady_file('inputs_sheet/steady/real_low_steady')
