@@ -59,10 +59,10 @@ def run_sim():
     model.step(dt)
     
     if i % 1 == 0:
-      model.write_pvds(['pfo', 'h', 'S'])
+      model.write_pvds(['pfo', 'h'])
       
     if i % 1 == 0:
-      model.checkpoint(['h', 'phi', 'S', 'k', 'm'])
+      model.checkpoint(['h', 'pfo', 'k', 'm', 'u_b'])
     
     if MPI_rank == 0: 
       print
@@ -77,6 +77,7 @@ for to in shutoff_times:
   scale_functions.shutoff_length = to
   name = names[i]
   model_inputs['out_dir'] = 'paper_results/real_shutoff_low/' +  name
+  model_inputs['checkpoint_file'] = 'shut_low_' + name
   model = SheetModel(model_inputs)
   run_sim()
   i += 1
