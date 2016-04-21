@@ -13,7 +13,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 
 ### Load the input file 
 
-input_file = 'inputs_sheet/steady/real_steady_high.hdf5'
+input_file = 'inputs_sheet/steady/real_high_steady.hdf5'
 k_min = 5e-5
 k_max = 5e-3
 scale_functions = ScaleFunctions(input_file, k_min, k_max, u_b_max = 80.0)
