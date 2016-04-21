@@ -73,7 +73,7 @@ def run_sim():
 ### Run simulations with different lag times 
 
 i = 0
-for to in lag_times:
+for to in shutoff_times:
   scale_functions.shutoff_length = to
   name = names[i]
   model_inputs['out_dir'] = 'paper_results/real_shutoff_high/' +  name
