@@ -41,7 +41,7 @@ names = ['day', 'week', 'month']
 
 ### Run the simulation
 
-def run_sim():
+def run_sim(name):
 
   # Seconds per month
   spm = pcs['spm']
@@ -53,6 +53,13 @@ def run_sim():
   i = 0
   
   while model.t < T:  
+    if name == 'day' and model.t <= spd:
+      dt = 60.0 * 60.0 * 1.0
+    elif name == 'week' and model.t <= 7.0 * spd:
+      dt = 60.0 * 60.0 * 1.0
+    else :
+      dt = 60.0 * 60.0 * 8.0
+      
     # Update the melt
     model.set_m(scale_functions.get_m(model.t))
     # Update the conductivity
@@ -87,5 +94,5 @@ for to in shutoff_times:
   model_inputs['out_dir'] = 'paper_results/real_shutoff_low/' +  name
   model_inputs['checkpoint_file'] = 'shut_low_' + name
   model = SheetModel(model_inputs)
-  run_sim()
+  run_sim(name)
   i += 1
