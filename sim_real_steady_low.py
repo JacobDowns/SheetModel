@@ -45,7 +45,7 @@ model = SheetModel(model_inputs)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 75.0 * spd
+T = 90.0 * spd
 # Time step
 dt = spd
 # Iteration count
