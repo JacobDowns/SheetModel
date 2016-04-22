@@ -74,7 +74,7 @@ def run_sim(name):
     model.step(dt)
     
     if i % 1 == 0:
-      model.write_pvds(['pfo', 'h'])
+      model.write_pvds(['pfo', 'h', 'k', 'u_b'])
       
     if i % 1 == 0:
       model.checkpoint(['h', 'pfo', 'k', 'm', 'u_b'])
