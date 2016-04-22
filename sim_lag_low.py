@@ -89,7 +89,7 @@ def run_sim(name):
 
 i = 0
 for b in lag_times:
-  lag_times.b = b
+  scale_functions.b = b
   name = names[i]
   model_inputs['out_dir'] = 'paper_results/real_lag_low/' +  name
   model_inputs['checkpoint_file'] = 'lag_low_' + name
