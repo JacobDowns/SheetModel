@@ -97,7 +97,6 @@ class PhiSolver(object):
     
     # Array of objective function values
     self.J_phi_vals = []
-    self.out = File("stuff/phi.pvd")
 
     
   # Python function version of the functional
@@ -180,10 +179,11 @@ class PhiSolver(object):
 
   # Callback function for bfgs    
   def __bfgs_callback__(self, xk):
-    self.model.update_phi()
-    self.out << self.model.pfo
+    #self.model.update_phi()
+    #self.out << self.model.pfo
     # Get the value of the objective function
-    self.J_phi_vals.append(self.__J_phi_func__(xk))
+    #self.J_phi_vals.append(self.__J_phi_func__(xk))
+    pass
 
   # External function that solves optimization problem for model.phi then updates 
   # any fields related to phi 

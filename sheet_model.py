@@ -4,6 +4,7 @@ from constants import *
 from model import *
 from phi_solver import *
 from h_solver import *
+from sys import stderr
 
 """ Wrapper class for Schoof's constrained sheet model."""
 
