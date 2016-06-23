@@ -22,5 +22,6 @@ You can test the installation by opening an ``ipython`` terminal and typing:
 ```python
 from sheet_model import *
 ```
+The current repository contains only the model source code. A plethora of model experiments can be found here: https://github.com/JacobDowns/SheetExperiments
 
 
