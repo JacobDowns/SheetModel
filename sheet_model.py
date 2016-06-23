@@ -16,7 +16,7 @@ class SheetModel(Model):
 
     ### Initialize model variables
   
-    self.V_cg = FunctionSpace(self.mesh, "CG", 1)
+    self.V_cg = FunctionSpace(self.mesh, "CG", 2)
     # Cavity height variable
     self.h = Function(self.V_cg)
     # Bed geometry
@@ -80,8 +80,8 @@ class SheetModel(Model):
     else :
       prm = NonlinearVariationalSolver.default_parameters()
       prm['newton_solver']['relaxation_parameter'] = 1.0
-      prm['newton_solver']['relative_tolerance'] = 1e-4
-      prm['newton_solver']['absolute_tolerance'] = 1e-4
+      prm['newton_solver']['relative_tolerance'] = 1e-5
+      prm['newton_solver']['absolute_tolerance'] = 1e-5
       prm['newton_solver']['error_on_nonconvergence'] = False
       prm['newton_solver']['maximum_iterations'] = 30
       
@@ -112,7 +112,7 @@ class SheetModel(Model):
     if 'opt_params' in self.model_inputs:
       self.opt_params = self.model_inputs['opt_params']
     else:
-      self.opt_params = {'tol' : 1e-2, 'scale' : 15}
+      self.opt_params = {'tol' : 5e-3, 'scale' : 20}
       
     
     ### Create objects that solve the model equations
@@ -191,22 +191,16 @@ class SheetModel(Model):
   # Steps the model forward, attempting to keep pressure fixed by manipulating 
   # sliding speed                  
   def step_maintain(self, dt):
+    File('ub.pvd') << project(self.u_b * pcs['spy'])
     # Solve for initial pressure
     self.phi_solver.step()
     
-    plot(-div(self.phi_solver.q), interactive = True)
-    plot(self.phi, interactive = True)
-    plot(self.phi_solver.ub_resid, interactive = True)
-    
-    # Step sheet height forward
-    #self.h_solver.step(dt)
-    # Choose a sliding speed to maintain the current pressure 
-    self.set_u_b(project(self.phi_solver.ub_resid, self.V_cg))
-    
-    self.write_pvds(['u_b'])
+    #plot(div(self.phi_solver.q), interactive = True)
+    File('ub_resid.pvd') << project(self.phi_solver.ub_resid * pcs['spy'], self.V_cg)
+    #self.write_pvds(['u_b'])
     quit()    
     # Update model time
-    self.t += dt     
+    self.t += dt
     
   
   # Steps phi forward using the optimization procedure then steps h 

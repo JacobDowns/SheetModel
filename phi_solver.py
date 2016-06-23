@@ -33,7 +33,7 @@ class PhiSolver(object):
     # Rate factor
     A = model.pcs['A']
     # Sheet conductivity
-    k = model.k
+    k = model.k  
     # Bump height
     h_r = model.h_r
     # Distance between bumps
@@ -60,6 +60,9 @@ class PhiSolver(object):
     # Closing term
     v = Constant(A) * h * N**3
     
+    self.q = q
+    self.ub_resid = (Constant(l_r) * (-div(q) + v + m)) / (h_r - h)
+    
     # Test function
     theta = TestFunction(model.V_cg)
     # Variational form for the PDE
@@ -69,9 +72,6 @@ class PhiSolver(object):
     self.J = derivative(self.F, phi, dphi) 
     
     
-    ### Sliding speed residual
-    self.ub_resid = (Constant(l_r) * (-div(q) + v + m)) / (Constant(0.1) - h)
-    self.q = q
   
     ### Set up the variational principle for determining potential 
   
