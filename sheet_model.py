@@ -185,7 +185,28 @@ class SheetModel(Model):
     self.phi_solver.step()
     self.h_solver.step(dt)
     # Update model time
-    self.t += dt
+    self.t += dt     
+
+
+  # Steps the model forward, attempting to keep pressure fixed by manipulating 
+  # sliding speed                  
+  def step_maintain(self, dt):
+    # Solve for initial pressure
+    self.phi_solver.step()
+    
+    plot(-div(self.phi_solver.q), interactive = True)
+    plot(self.phi, interactive = True)
+    plot(self.phi_solver.ub_resid, interactive = True)
+    
+    # Step sheet height forward
+    #self.h_solver.step(dt)
+    # Choose a sliding speed to maintain the current pressure 
+    self.set_u_b(project(self.phi_solver.ub_resid, self.V_cg))
+    
+    self.write_pvds(['u_b'])
+    quit()    
+    # Update model time
+    self.t += dt     
     
   
   # Steps phi forward using the optimization procedure then steps h 

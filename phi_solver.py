@@ -67,7 +67,11 @@ class PhiSolver(object):
     # Get the Jacobian
     dphi = TrialFunction(model.V_cg)
     self.J = derivative(self.F, phi, dphi) 
-
+    
+    
+    ### Sliding speed residual
+    self.ub_resid = (Constant(l_r) * (-div(q) + v + m)) / (Constant(0.1) - h)
+    self.q = q
   
     ### Set up the variational principle for determining potential 
   
@@ -247,3 +251,4 @@ class PhiSolver(object):
     
     # If pressure was in the correct range return false
     return False
+    
