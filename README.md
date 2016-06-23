@@ -17,7 +17,7 @@ To install, add a line to you .bashrc file:
 ```bash
 export PYTHONPATH="<insert SheetModel directory here>:$PYTHONPATH"
 ```
-You can test everything is working by opening an ``ipython`` terminal and typing:
+You can test the installation by opening an ``ipython`` terminal and typing:
 
 ```python
 from sheet_model import *
