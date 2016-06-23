@@ -15,7 +15,7 @@ sudo pip install colored
 
 To install, add a line to you .bashrc file:
 ```bash
-export PYTHONPATH="<Insert SheetModel Directory>:$PYTHONPATH"
+export PYTHONPATH="<insert SheetModel directory here>:$PYTHONPATH"
 ```
 You can test everything is working by opening an ``ipython`` terminal and typing:
 
