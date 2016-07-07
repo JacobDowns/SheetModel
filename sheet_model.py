@@ -79,8 +79,8 @@ class SheetModel(Model):
     else :
       prm = NonlinearVariationalSolver.default_parameters()
       prm['newton_solver']['relaxation_parameter'] = 1.0
-      prm['newton_solver']['relative_tolerance'] = 1e-4
-      prm['newton_solver']['absolute_tolerance'] = 1e-4
+      prm['newton_solver']['relative_tolerance'] = 1e-6
+      prm['newton_solver']['absolute_tolerance'] = 1e-6
       prm['newton_solver']['error_on_nonconvergence'] = False
       prm['newton_solver']['maximum_iterations'] = 30
       
@@ -111,7 +111,7 @@ class SheetModel(Model):
     if 'opt_params' in self.model_inputs:
       self.opt_params = self.model_inputs['opt_params']
     else:
-      self.opt_params = {'tol' : 1e-2, 'scale' : 15}
+      self.opt_params = {'tol' : 5e-3, 'scale' : 25}
       
     
     ### Create objects that solve the model equations

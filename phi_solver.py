@@ -97,7 +97,6 @@ class PhiSolver(object):
     
     # Array of objective function values
     self.J_phi_vals = []
-    self.out = File("stuff/phi.pvd")
 
     
   # Python function version of the functional
