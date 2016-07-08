@@ -30,6 +30,6 @@ Once you have the experiments, the easist way to get started is to run the two c
 python gen_inputs_high.py
 python gen_inputs_low.py
 ```
-in the gen\_inputs directory. These will create some default hdf5 inputs files in the inputs_sheet/inputs directoryr called
+in the gen\_inputs directory. These scripts will create some default hdf5 inputs files in the inputs\_sheet/inputs directory called inputs\_high.hdf5 and inputs\_low.hdf5. 
 
 
