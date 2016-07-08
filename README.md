@@ -24,4 +24,12 @@ from sheet_model import *
 ```
 The current repository contains only the model source code. A plethora of model experiments can be found here: https://github.com/JacobDowns/SheetExperiments
 
+Once you have the experiments, the easist way to get started is to run the two commands
+
+```bash
+python gen_inputs_high.py
+python gen_inputs_low.py
+```
+in the gen\_inputs directory. These will create some default hdf5 inputs files in the inputs_sheet/inputs directoryr called
+
 
