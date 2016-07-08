@@ -13,7 +13,7 @@ You will also need to install the Python colored library.
 sudo pip install colored
 ```
 
-To install, add a line to you .bashrc file:
+To install, add a line to your .bashrc file:
 ```bash
 export PYTHONPATH="<insert SheetModel directory here>:$PYTHONPATH"
 ```
