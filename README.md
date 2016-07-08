@@ -44,21 +44,16 @@ from dolfin import MPI, mpi_comm_world
 from sheet_model import *
 from constants import *
 
-
 ### Model inputs
 
-# Process number
+# Process number 
 MPI_rank = MPI.rank(mpi_comm_world())
-
+# Model inputs are passed into the SheetModel object using this model_inputs dictionary
 model_inputs = {}
-pcs['k'] = 5e-3
-pcs['l_r'] = 0.1
+# Path of the hdf5 file with model inputs
 model_inputs['input_file'] = '../inputs_sheet/inputs/inputs_high.hdf5'
 model_inputs['out_dir'] = 'out_ref_steady/'
-model_inputs['constants'] = pcs
-model_inputs['newton_params'] = prm
-
-# Create the sheet model
+# Create the sheet model object
 model = SheetModel(model_inputs)
 
 
@@ -66,19 +61,23 @@ model = SheetModel(model_inputs)
 
 # Seconds per day
 spd = pcs['spd']
-# End time
+# Simulate end time
 T = 90.0 * spd
 # Time step
 dt = spd / 2.0
 
-while model.t < T:  
+while model.t < T:
+  # First process prints current model time  
   if MPI_rank == 0: 
     current_time = model.t / spd
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
+  # Advance the model by the time step
   model.step(dt)
+  # Ouput paraview files with pressure (pfo) and sheet height h
   model.write_pvds(['pfo', 'h'])
   
+# Write a steady state file
 model.write_steady_file('../inputs_sheet/steady/ref_steady')
 ```
 
