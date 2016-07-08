@@ -32,7 +32,7 @@ python gen_inputs_low.py
 ```
 in the SheetExperiments/gen\_inputs directory. These scripts will create some default hdf5 inputs files in the inputs\_sheet/inputs directory called inputs\_high.hdf5 and inputs\_low.hdf5. These input files contain fields including bed elevation, ice thickness, initial sliding speed, initial melt rate, and boundary conditions for use in synthetic simulations.  
 
-Frome here you will be able run the sim_ref_steady.py script in SheetExperiments/ref\_steady. 
+Frome here you will be able run the sim_ref_steady.py script in SheetExperiments/ref\_steady. Maybe a link to the paper here. 
 
 ```python
 """
