@@ -2,8 +2,7 @@ from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from constants import *
 from model import *
-from phi_solver import *
-from h_solver import *
+from solver import *
 
 """ Wrapper class for Schoof's constrained sheet model."""
 
@@ -18,6 +17,8 @@ class SheetModel(Model):
     self.V_cg = FunctionSpace(self.mesh, "CG", 1)
     # Cavity height variable
     self.h = Function(self.V_cg)
+    # Cavity height at previous time step
+    self.h_prev = Function(self.V_cg)
     # Bed geometry
     self.B = Function(self.V_cg)
     # Ice thickness
@@ -44,6 +45,9 @@ class SheetModel(Model):
     self.p_w = Function(self.V_cg)
     # Pressure as a fraction of overburden
     self.pfo = Function(self.V_cg)
+    # Function for visualizing flux
+    self.V_cg_vec = VectorFunctionSpace(self.mesh, "CG", 1)
+    self.q_func = Function(self.V_cg_vec)
     
     self.init_model()
     
@@ -101,25 +105,12 @@ class SheetModel(Model):
     if 'phi_max' in self.model_inputs:
       self.phi_max.assign(self.model_inputs['phi_max'])
       
-     # Apply any Dirichlet bcs to the phi_min and phi_max functions
-    for bc in self.d_bcs:
-      bc.apply(self.phi_min.vector())
-      bc.apply(self.phi_max.vector())
-    
-    # If optimization parameters are specified use them. Otherwise use some 
-    # sensible defaults
-    if 'opt_params' in self.model_inputs:
-      self.opt_params = self.model_inputs['opt_params']
-    else:
-      self.opt_params = {'tol' : 5e-3, 'scale' : 25}
       
     
     ### Create objects that solve the model equations
     
     # Potential solver
-    self.phi_solver = PhiSolver(self)
-    # Sheet height solver
-    self.h_solver = HSolver(self)
+    self.solver = Solver(self)
       
 
     ### Output files
@@ -130,6 +121,7 @@ class SheetModel(Model):
     self.m_out = File(self.out_dir + "m.pvd")
     self.u_b_out = File(self.out_dir + "u_b.pvd")
     self.k_out = File(self.out_dir + "k.pvd")
+    self.q_out = File(self.out_dir + "q.pvd")
     
     
   # Look at the input file to check if we're starting or continuing a simulation
@@ -147,8 +139,8 @@ class SheetModel(Model):
   def start_simulation(self):
     self.load_inputs()
     
-    # Read in the initial cavity height
-    self.input_file.read(self.h, "h_0")
+    # Sets h_prev
+    self.update_h()
     
     # Write the initial conditions. These can be used as defaults to initialize
     # the model if a simulation crashes and we want to start it again
@@ -173,6 +165,9 @@ class SheetModel(Model):
      num_steps = self.input_file.attributes("h")['count']
      h_last = "h/vector_" + str(num_steps - 1)
      self.input_file.read(self.h, h_last)
+     
+     # Sets h_prev
+     self.update_h()
       
      # Get the start time for the simulation        
      attr = self.input_file.attributes(h_last)
@@ -181,18 +176,7 @@ class SheetModel(Model):
     
   # Steps phi and h forward by dt
   def step(self, dt):
-    self.phi_solver.step()
-    self.h_solver.step(dt)
-    # Update model time
-    self.t += dt
-    
-  
-  # Steps phi forward using the optimization procedure then steps h 
-  # forward
-  def step_opt(self, dt):
-    self.phi_solver.solve_opt()
-    self.h_solver.step(dt)
-    # Update model time
+    self.solver.step(dt)
     self.t += dt
     
     
@@ -207,29 +191,21 @@ class SheetModel(Model):
       # Boundary facet function
       self.input_file.read(self.boundaries, "boundaries")
       # Melt input
-      self.assign_func(self.m, "m_0")
+      self.input_file.read(self.m, "m_0")
       # Sliding speed
-      self.assign_func(self.u_b, "u_b_0")      
+      self.input_file.read(self.u_b, "u_b_0")   
+      # Sheet height
+      self.input_file.read(self.h, "h_0")
+      # Conductivity
+      self.input_file.read(self.k, "k_0")
+      # Use the default constant bump height
+      self.h_r.assign(interpolate(Constant(self.pcs['h_r']), self.V_cg))
+      
     except Exception as e:
       # If we can't find one of these model inputs we're done 
       print >> sys.stderr, e
       print >> sys.stderr, "Could not load model inputs."
       sys.exit(1)
-    
-    try :
-      # If we get a hydraulic conductivity expression or function use it
-      self.assign_func(self.k, 'k')
-      self.k.assign(project(self.k, self.V_cg))
-    except :
-      # Otherwise we'll just use use the default constant conductivity 
-      self.k.assign(interpolate(Constant(self.pcs['k']), self.V_cg))
-      
-    try :
-      # If we get a bump height function use it
-      self.assign_func(self.h_r, 'h_r')
-    except :
-      # Otherwise we'll just use use the default constant bump height
-      self.h_r.assign(interpolate(Constant(self.pcs['h_r']), self.V_cg))
       
       
   # Update the effective pressure to reflect current value of phi
@@ -257,6 +233,11 @@ class SheetModel(Model):
   def update_phi(self):
     self.update_N()
     self.update_pw()
+
+    
+  # Updates functions derived from h
+  def update_h(self):
+    assign(self.h_prev, self.h)
     
   
   # Write fields to pvd files for visualization
@@ -272,14 +253,12 @@ class SheetModel(Model):
         self.h_out << self.h
       if 'pfo' in to_write:
         self.pfo_out << self.pfo
-      if 'u' in to_write:
-        self.u_out << self.phi_solver.u
       if 'm' in to_write:
         self.m_out << self.m
       if 'u_b' in to_write:
         self.u_b_out << self.u_b
       if 'q' in to_write:
-        self.q_func.assign(project(self.phi_solver.q, self.V_cg))
+        self.q_func.assign(project(self.solver.q, self.V_cg_vec))
         self.q_out << self.q_func
       if 'k' in to_write:
         self.k_out << self.k
@@ -319,11 +298,6 @@ class SheetModel(Model):
   # Sets the hydraulic conductivity
   def set_k(self, new_k):
     self.k.assign(project(new_k, self.V_cg))
-    
-    
-  # Sets the sheet height
-  def set_h(self, new_h):
-    self.h.assign(new_h)
   
   
   # Write out a steady state file we can use to start new simulations

@@ -31,9 +31,9 @@ model = SheetModel(model_inputs)
 # Seconds per day
 spd = pcs['spd']
 # End time
-T = 50.0 * spd
+T = 100.0 * spd
 # Time step
-dt = 60.0 * 60.0
+dt = spd / 6.0
 # Iteration count
 i = 0
 
@@ -43,8 +43,8 @@ while model.t < T:
     print ('%sCurrent time: %s %s' % (fg(1), current_time, attr(0)))
   
   model.step(dt)
-  
-  if i % 2 == 0:
+
+  if i % 1 == 0:
     model.write_pvds(['pfo', 'h', 'q', 'phi'])
     
   if i % 1 == 0:
