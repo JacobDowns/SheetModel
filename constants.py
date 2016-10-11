@@ -15,7 +15,7 @@ pcs['rho_i'] = 910.0
 # Gravitational acceleration (m / s^2)
 pcs['g'] = 9.81 
 # Flow rate factor of ice (1 / Pa^3 * s) 
-pcs['A'] = 5.0e-25
+pcs['A'] = 2.5e-25
 # Average bump height (m)
 pcs['h_r'] = 0.1
 # Typical spacing between bumps (m)
