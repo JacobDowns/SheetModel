@@ -44,6 +44,9 @@ class SheetModel(Model):
     self.p_w = Function(self.V_cg)
     # Pressure as a fraction of overburden
     self.pfo = Function(self.V_cg)
+    # Function for visualizing flux
+    self.V_cg_vec = VectorFunctionSpace(self.mesh, "CG", 1)
+    self.q_func = Function(self.V_cg_vec)
     
     self.init_model()
     
@@ -130,6 +133,7 @@ class SheetModel(Model):
     self.m_out = File(self.out_dir + "m.pvd")
     self.u_b_out = File(self.out_dir + "u_b.pvd")
     self.k_out = File(self.out_dir + "k.pvd")
+    self.q_out = File(self.out_dir + "q.pvd")
     
     
   # Look at the input file to check if we're starting or continuing a simulation
@@ -279,7 +283,7 @@ class SheetModel(Model):
       if 'u_b' in to_write:
         self.u_b_out << self.u_b
       if 'q' in to_write:
-        self.q_func.assign(project(self.phi_solver.q, self.V_cg))
+        self.q_func.assign(project(self.phi_solver.q, self.V_cg_vec))
         self.q_out << self.q_func
       if 'k' in to_write:
         self.k_out << self.k

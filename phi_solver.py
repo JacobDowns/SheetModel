@@ -97,6 +97,8 @@ class PhiSolver(object):
     
     # Array of objective function values
     self.J_phi_vals = []
+    
+    self.q = q
 
     
   # Python function version of the functional
