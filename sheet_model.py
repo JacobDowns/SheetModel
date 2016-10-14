@@ -114,7 +114,7 @@ class SheetModel(Model):
     if 'opt_params' in self.model_inputs:
       self.opt_params = self.model_inputs['opt_params']
     else:
-      self.opt_params = {'tol' : 5e-3, 'scale' : 25}
+      self.opt_params = {'tol' : 1e-3, 'scale' : 100}
       
     
     ### Create objects that solve the model equations
