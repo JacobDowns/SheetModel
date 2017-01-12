@@ -1,7 +1,6 @@
 from dolfin import *
 from scipy.integrate import ode
 from dolfin import MPI, mpi_comm_world
-from colored import fg, attr
 
 """Solves ODE for the sheet height h with phi fixed."""
 
@@ -49,7 +48,7 @@ class HSolver():
       return dhdt
     
     # Set up ODE solver
-    ode_solver = ode(rhs).set_integrator('vode',  method='adams', max_step = 60.0 * 5.0)
+    ode_solver = ode(rhs).set_integrator('vode',  method='adams', max_step = 60.0 * 1.0)
     ode_solver.set_initial_value(h0, t0)
 
 
@@ -65,10 +64,8 @@ class HSolver():
     # for this step. Normally, we could just use the solution from the previous
     # time step, but this is important if we want to reset the model (say manually
     # assign a different h)
+  
     self.ode_solver.y[:] = self.model.h.vector().array()
-    
-    if self.MPI_rank == 0:
-      print ('%sSolving for h... %s' % (fg(10), attr(0)))
       
     # Step h 
     self.ode_solver.integrate(self.model.t + dt)
@@ -76,8 +73,5 @@ class HSolver():
     # Retrieve values from the ODE solver    
     self.model.h.vector().set_local(self.ode_solver.y)
     self.model.h.vector().apply("insert")
-    
-    if self.MPI_rank == 0:
-      print ('%sDone. %s' % (fg(10), attr(0)))
   
  

@@ -1,7 +1,6 @@
 import abc
 from dolfin import *
 from constants import *
-from colored import fg, attr
 
 """ Abstract model class. """
 

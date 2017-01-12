@@ -1,6 +1,5 @@
 from dolfin import *
 from dolfin import MPI, mpi_comm_world
-from colored import fg, attr
 
 """ Solves phi with h fixed."""
 
@@ -75,11 +74,22 @@ class PhiSolver(object):
                                           "error_on_nonconvergence": False, 
                                           "relative_tolerance" : 1e-6,
                                           "absolute_tolerance" : 1e-6}}
-                                          
+                      
+    # Set object variables                  
     self.phi_solver = NonlinearVariationalSolver(phi_problem)
     self.phi_solver.parameters.update(snes_solver_parameters)
+    self.F = F
+    self.J = J
+    self.phi = phi
+    self.model = model
     
-
+    
+  # Step PDE for phi forward by dt. No constraints.
+  def step_phi(self):
+    # Solve for potential
+    solve(self.F == 0, self.phi, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params) 
+    
+    
   # Step PDE for phi forward by dt. Constrain using SNES solver. 
   def step_phi_constrained(self):
     # Solve for potential
@@ -87,7 +97,12 @@ class PhiSolver(object):
     # Update phi
     self.model.update_phi()  
     
-
+    
   # Steps the potential forward with h fixed
   def step(self):
+    self.step_phi()
+    
+
+  # Steps the potential forward with h fixed with constraints 
+  def step_constrained(self):
     self.step_phi_constrained()

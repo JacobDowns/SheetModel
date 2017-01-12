@@ -13,7 +13,7 @@ pcs['rho_w'] = 1000.0
 # Density of ice (kg / m^3)
 pcs['rho_i'] = 910.0
 # Gravitational acceleration (m / s^2)
-pcs['g'] = 9.81 
+pcs['g'] = 9.8 
 # Flow rate factor of ice (1 / Pa^3 * s) 
 pcs['A'] = 2.5e-25
 # Average bump height (m)

@@ -61,6 +61,7 @@ class Solver(object):
     # Time step
     dt = Constant(1.0)
     
+    
     ### Variational forms
     
     # Test function
