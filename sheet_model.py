@@ -2,7 +2,9 @@ from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from constants import *
 from model import *
-from solver import *
+from phi_solver import *
+from h_solver import *
+
 
 """ Wrapper class for Schoof's constrained sheet model."""
 
@@ -11,14 +13,11 @@ class SheetModel(Model):
   def __init__(self, model_inputs):
     Model.__init__(self, model_inputs)
 
-
     ### Initialize model variables
   
     self.V_cg = FunctionSpace(self.mesh, "CG", 1)
     # Cavity height variable
     self.h = Function(self.V_cg)
-    # Cavity height at previous time step
-    self.h_prev = Function(self.V_cg)
     # Bed geometry
     self.B = Function(self.V_cg)
     # Ice thickness
@@ -86,7 +85,7 @@ class SheetModel(Model):
       prm['newton_solver']['relative_tolerance'] = 1e-6
       prm['newton_solver']['absolute_tolerance'] = 1e-6
       prm['newton_solver']['error_on_nonconvergence'] = False
-      prm['newton_solver']['maximum_iterations'] = 30
+      prm['newton_solver']['maximum_iterations'] = 13
       
       self.newton_params = prm
       
@@ -110,7 +109,8 @@ class SheetModel(Model):
     ### Create objects that solve the model equations
     
     # Potential solver
-    self.solver = Solver(self)
+    self.phi_solver = PhiSolver(self)
+    self.h_solver = HSolver(self)
       
 
     ### Output files
@@ -139,9 +139,6 @@ class SheetModel(Model):
   def start_simulation(self):
     self.load_inputs()
     
-    # Sets h_prev
-    self.update_h()
-    
     # Write the initial conditions. These can be used as defaults to initialize
     # the model if a simulation crashes and we want to start it again
     self.output_file.write(self.h, "h_0")
@@ -165,9 +162,6 @@ class SheetModel(Model):
      num_steps = self.input_file.attributes("h")['count']
      h_last = "h/vector_" + str(num_steps - 1)
      self.input_file.read(self.h, h_last)
-     
-     # Sets h_prev
-     self.update_h()
       
      # Get the start time for the simulation        
      attr = self.input_file.attributes(h_last)
@@ -176,7 +170,15 @@ class SheetModel(Model):
     
   # Steps phi and h forward by dt
   def step(self, dt):
-    self.solver.step(dt)
+    self.phi_solver.step()
+    self.h_solver.step(dt)
+    self.t += dt
+    
+  
+  # Steps phi and h forward by dt, with constraints on phi
+  def step_constrained(self, dt):
+    self.phi_solver.step_constrained()
+    self.h_solver.step(dt)
     self.t += dt
     
     
@@ -233,11 +235,6 @@ class SheetModel(Model):
   def update_phi(self):
     self.update_N()
     self.update_pw()
-
-    
-  # Updates functions derived from h
-  def update_h(self):
-    assign(self.h_prev, self.h)
     
   
   # Write fields to pvd files for visualization

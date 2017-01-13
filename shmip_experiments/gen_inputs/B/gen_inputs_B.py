@@ -1,19 +1,66 @@
 """
-Model inputs for intercomparisson tests A1 - A6. 
+Model inputs for intercomparisson tests B1 - B6. 
 """
 
 from dolfin import *
 from constants import *
+import numpy as np
 
-ns = range(1,7)
+
+
+# Directory to write model inputs
+mesh = Mesh("../../inputs/mesh/mesh.xml")
+V_cg = FunctionSpace(mesh, "CG", 1)
+
+#ns = range(1,6)
+ns = [1]
+
+for n in ns:
+  data = np.loadtxt('B' + str(n) + '_M.csv', delimiter=',')
+  m = Function(V_cg)
+  
+  moulin_xs = data[:,1]
+  moulin_ys = data[:,2]
+  flux = data[:,3]
+  
+  for i in range(moulin_xs):
+    moulin_x = moulin_xs[i]
+    moulin_y = moulin_ys[i]
+    
+    distances = np.sqrt((coords_x - xd)**2 + (coords_y - yd)**2)
+    i = distances.argmin()
+    
+    
+  
+  
+quit()
+                              
+
+
 
 out_files = ["../../inputs/A/input_A" + str(n) + ".hdf5" for n in ns]
 melt_rates = [7.93e-11, 1.59e-9, 5.79e-9, 2.5e-8, 4.5e-8, 5.79e-7]
 sheet_heights = [0.005, 0.001, 0.0015, 0.002, 0.0025, 0.003]
 
-# Directory to write model inputs
-mesh = Mesh("../../inputs/mesh/mesh.xml")
-V_cg = FunctionSpace(mesh, "CG", 1)
+
+
+coords = V_cg.tabulate_dof_coordinates().reshape(V_cg.dim(), 2)
+coords_x = coords[:,0]
+coords_y = coords[:,1]
+
+xd = 59000.0
+yd = 8000.0 
+
+
+
+
+f = Function(V_cg)
+f.vector()[i] = 1.0
+
+File('f.pvd') << f
+
+
+quit()
 
 # Sliding speed
 u_b = interpolate(Constant(1e-6), V_cg)

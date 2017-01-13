@@ -85,24 +85,17 @@ class PhiSolver(object):
     
     
   # Step PDE for phi forward by dt. No constraints.
-  def step_phi(self):
+  def step(self):
     # Solve for potential
-    solve(self.F == 0, self.phi, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params) 
+    solve(self.F == 0, self.phi, self.model.d_bcs, J = self.J, solver_parameters = self.model.newton_params)
+    # Update phi
+    self.model.update_phi()  
     
     
   # Step PDE for phi forward by dt. Constrain using SNES solver. 
-  def step_phi_constrained(self):
+  def step_constrained(self):
     # Solve for potential
     (i, converged) = self.phi_solver.solve()
     # Update phi
     self.model.update_phi()  
     
-    
-  # Steps the potential forward with h fixed
-  def step(self):
-    self.step_phi()
-    
-
-  # Steps the potential forward with h fixed with constraints 
-  def step_constrained(self):
-    self.step_phi_constrained()
