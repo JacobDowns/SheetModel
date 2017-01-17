@@ -6,66 +6,21 @@ from dolfin import *
 from constants import *
 import numpy as np
 
+ns = range(1,6)
+
+out_files = ["../../inputs/B/input_B" + str(n) + ".hdf5" for n in ns]
 
 
 # Directory to write model inputs
 mesh = Mesh("../../inputs/mesh/mesh.xml")
 V_cg = FunctionSpace(mesh, "CG", 1)
 
-#ns = range(1,6)
-ns = [1]
-
-for n in ns:
-  data = np.loadtxt('B' + str(n) + '_M.csv', delimiter=',')
-  m = Function(V_cg)
-  
-  moulin_xs = data[:,1]
-  moulin_ys = data[:,2]
-  flux = data[:,3]
-  
-  for i in range(moulin_xs):
-    moulin_x = moulin_xs[i]
-    moulin_y = moulin_ys[i]
-    
-    distances = np.sqrt((coords_x - xd)**2 + (coords_y - yd)**2)
-    i = distances.argmin()
-    
-    
-  
-  
-quit()
-                              
-
-
-
-out_files = ["../../inputs/A/input_A" + str(n) + ".hdf5" for n in ns]
-melt_rates = [7.93e-11, 1.59e-9, 5.79e-9, 2.5e-8, 4.5e-8, 5.79e-7]
-sheet_heights = [0.005, 0.001, 0.0015, 0.002, 0.0025, 0.003]
-
-
-
-coords = V_cg.tabulate_dof_coordinates().reshape(V_cg.dim(), 2)
-coords_x = coords[:,0]
-coords_y = coords[:,1]
-
-xd = 59000.0
-yd = 8000.0 
-
-
-
-
-f = Function(V_cg)
-f.vector()[i] = 1.0
-
-File('f.pvd') << f
-
-
-quit()
-
 # Sliding speed
 u_b = interpolate(Constant(1e-6), V_cg)
 # Conductivity 
 k = interpolate(Constant(5e-3), V_cg)
+# Initial sheet height  
+h = interpolate(Constant(0.03), V_cg)
 
 # Length of ice sheet 
 length = 100e3
@@ -106,10 +61,62 @@ boundaries = FacetFunction("size_t", mesh)
 boundaries.set_all(0)
 ms.mark(boundaries, 1)
 
-# Initial sheet height
+
+# Get x and y coordinates of mesh vertices
+coords = V_cg.tabulate_dof_coordinates().reshape(V_cg.dim(), 2)
+coords_x = coords[:,0]
+coords_y = coords[:,1]
 
 
-for n in range(6):
+
+for n in range(len(ns)):
+  
+  ## Calculate the melt function 
+  
+  data = np.loadtxt('B' + str(ns[n]) + '_M.csv', delimiter=',')
+  m = Function(V_cg)
+  
+  if n == 0:
+      data = np.array([data])
+  
+  # Moulin x locations
+  moulin_xs = data[:,1]
+  # Moulin y locations
+  moulin_ys = data[:,2]
+  # Flux into moulin in m^3 / s
+  fluxes = data[:,3]
+  # DOF indices of moulin vertexes
+  indexes = np.zeros(len(moulin_xs))
+  # DOF values at moulin vertexes
+  values = np.zeros(len(moulin_xs))
+  
+  
+  # Find moulin dofs and values
+  for i in range(len(moulin_xs)):  
+    moulin_x = moulin_xs[i]
+    moulin_y = moulin_ys[i]
+    flux = fluxes[i]
+    
+    # Find the vertex nearest to each moulin
+    distances = np.sqrt((coords_x - moulin_x)**2 + (coords_y - moulin_y)**2)
+    dof_index = distances.argmin()
+    
+    # Make a point source function and integrate it
+    m.vector()[dof_index] = 1
+    int_m = assemble(m * dx)
+    indexes[i] = dof_index
+    values[i] = flux / int_m
+  
+    # Reset m to zero
+    m.vector()[dof_index] = 0.0
+    
+  # Create the melt function
+  m.vector()[:] = 7.93e-11
+  m.vector()[indexes] += values
+  
+  
+  ## Write input file 
+  
   # Write inputs to a hdf5 file
   f = HDF5File(mesh.mpi_comm(), out_files[n], 'w')
   f.write(mesh, "mesh")
@@ -119,16 +126,7 @@ for n in range(6):
   f.write(H, "H")
   f.write(phi_0, "phi_0")
   f.write(boundaries, "boundaries")  
-
-  # Get initial sheet height  
-  h = interpolate(Constant(sheet_heights[n]), V_cg)
-  f.write(h, "h_0")
-
-  # Get melt rate
-  m = interpolate(Constant(melt_rates[n]), V_cg)
   f.write(m, "m_0")
+  f.write(h, "h_0")
   
   f.close()
-  
- 
-

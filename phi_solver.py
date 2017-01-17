@@ -82,6 +82,7 @@ class PhiSolver(object):
     self.J = J
     self.phi = phi
     self.model = model
+    self.q = q
     
     
   # Step PDE for phi forward by dt. No constraints.

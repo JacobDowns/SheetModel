@@ -7,9 +7,10 @@ from dolfin import *
 from constants import *
 from sheet_model import *
 from dolfin import MPI, mpi_comm_world
+import time
+import numpy as np 
 
-ns = [1]
-#ns = range(1,7)
+ns = [5]
 
 MPI_rank = MPI.rank(mpi_comm_world())
 input_files = ['../../inputs/A/input_A' + str(n) + '.hdf5' for n in ns]
@@ -32,11 +33,14 @@ for n in range(len(ns)):
   # Seconds per day
   spd = pcs['spd']
   # End time
-  T = 750.0 * spd
+  T = 1000.0 * spd
   # Time step
   dt = spd / 4.0
   # Iteration count
   i = 0
+  
+  # Time the run  
+  start_time = time.time()
   
   while model.t < T:  
     if MPI_rank == 0: 
@@ -49,11 +53,20 @@ for n in range(len(ns)):
       model.write_pvds(['pfo', 'h'])
       
     if i % 4 == 0:
-      model.checkpoint(['h', 'phi'])
+      model.checkpoint(['h', 'phi', 'N'])
     
     if MPI_rank == 0: 
       print
       
     i += 1
   
-  model.write_steady_file(result_dirs[n] + '/steady_A' + str(n))
+
+  model.write_steady_file(result_dirs[n] + '/steady_A' + str(ns[n]))
+
+  end_time = time.time()
+  np.savetxt('Time_' + str(ns[n]), np.array([start_time, end_time, end_time - start_time]))
+  
+
+
+ 
+ 

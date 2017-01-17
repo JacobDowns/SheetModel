@@ -65,7 +65,9 @@ class SheetModel(Model):
     
     # If there are boundary conditions specified, use them. Otherwise apply
     # default bc of 0 pressure on the margin
-    if 'd_bcs' in self.model_inputs:
+    if 'point_bc' in self.model_inputs:
+      self.d_bcs = DirichletBC(self.V_cg, self.phi_m, self.model_inputs['point_bc'], method="pointwise")
+    elif 'd_bcs' in self.model_inputs:
       # Dirichlet boundary conditions
       self.d_bcs = self.model_inputs['d_bcs']    
     else :
@@ -82,10 +84,10 @@ class SheetModel(Model):
     else :
       prm = NonlinearVariationalSolver.default_parameters()
       prm['newton_solver']['relaxation_parameter'] = 1.0
-      prm['newton_solver']['relative_tolerance'] = 1e-6
+      prm['newton_solver']['relative_tolerance'] = 1e-9
       prm['newton_solver']['absolute_tolerance'] = 1e-6
       prm['newton_solver']['error_on_nonconvergence'] = False
-      prm['newton_solver']['maximum_iterations'] = 13
+      prm['newton_solver']['maximum_iterations'] = 25
       
       self.newton_params = prm
       
@@ -105,7 +107,7 @@ class SheetModel(Model):
       self.phi_max.assign(self.model_inputs['phi_max'])
       
       
-    
+
     ### Create objects that solve the model equations
     
     # Potential solver
@@ -202,6 +204,18 @@ class SheetModel(Model):
       self.input_file.read(self.k, "k_0")
       # Use the default constant bump height
       self.h_r.assign(interpolate(Constant(self.pcs['h_r']), self.V_cg))
+      # If there is an initial phi, use it for initial guess
+      
+      has_phi_0 = False
+      try :
+        self.input_file.attributes("phi_0")
+        has_phi_0 = True
+      except :
+        pass
+      
+      if has_phi_0:
+        self.input_file.read(self.phi, "phi_0")  
+      
       
     except Exception as e:
       # If we can't find one of these model inputs we're done 
@@ -278,6 +292,8 @@ class SheetModel(Model):
       self.output_file.write(self.m, "m", self.t)
     if 'pfo' in to_write:
       self.output_file.write(self.pfo, "pfo", self.t)
+    if 'N' in to_write:
+      self.output_file.write(self.N, "N", self.t)
       
     self.output_file.flush()
     
@@ -310,4 +326,10 @@ class SheetModel(Model):
     output_file.write(self.h, "h_0")
     output_file.write(self.boundaries, "boundaries")
     output_file.write(self.k, "k_0")
+    output_file.write(self.N, 'N_0')
+    output_file.write(self.phi, 'phi_0')
+    
+    # Compute magnitude of flux
+    q_mag = project(sqrt(dot(self.phi_solver.q, self.phi_solver.q)), self.V_cg)
+    output_file.write(q_mag, 'q_0')
     

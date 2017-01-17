@@ -9,7 +9,7 @@ ns = range(1,7)
 
 out_files = ["../../inputs/A/input_A" + str(n) + ".hdf5" for n in ns]
 melt_rates = [7.93e-11, 1.59e-9, 5.79e-9, 2.5e-8, 4.5e-8, 5.79e-7]
-sheet_heights = [0.005, 0.001, 0.0015, 0.002, 0.0025, 0.003]
+sheet_heights = [0.005, 0.01, 0.02, 0.03, 0.04, 0.05]
 
 # Directory to write model inputs
 mesh = Mesh("../../inputs/mesh/mesh.xml")
