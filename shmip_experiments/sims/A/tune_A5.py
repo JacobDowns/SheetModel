@@ -12,6 +12,7 @@ import numpy as np
 
 ns = [5]
 
+
 MPI_rank = MPI.rank(mpi_comm_world())
 input_files = ['../../inputs/A/input_A' + str(n) + '.hdf5' for n in ns]
 result_dirs = ['results_A' + str(n) + '_b' for n in ns]

@@ -10,7 +10,8 @@ from dolfin import MPI, mpi_comm_world
 import time
 import numpy as np 
 
-ns = range(1,6)
+#ns = range(1,6)
+ns = [1]
 
 MPI_rank = MPI.rank(mpi_comm_world())
 # Input files 
@@ -21,7 +22,7 @@ result_dirs = ['results_E' + str(n) for n in ns]
 # Subdomain containing only a single outlet point at terminus
 def outlet_boundary(x, on_boundary):
   cond1 = abs(x[0]) < 5.0
-  cond2 = abs(x[1]) < 5.0
+  cond2 = abs(x[1]) < 15.0
   return cond1 and cond2
 
 
@@ -38,15 +39,18 @@ for n in range(len(ns)):
   # Create the sheet model
   model = SheetModel(model_inputs)
   
+  #f = interpolate(Constant(1.0), model.V_cg)
+  #model.d_bcs[0].apply(f.vector())
+  
     
   ### Run the simulation
   
   # Seconds per day
   spd = pcs['spd']
   # End time
-  T = 1000.0 * spd
+  T = 1250.0 * spd
   # Time step
-  dt = spd / 4.0
+  dt = spd / 3.0
   # Iteration count
   i = 0
   
@@ -61,10 +65,10 @@ for n in range(len(ns)):
     
     model.step(dt)
     
-    if i % 4 == 0:
-      model.write_pvds(['pfo', 'h'])
+    if i % 8 == 0:
+      model.write_pvds(['pfo', 'h', 'N'])
       
-    if i % 4 == 0:
+    if i % 8 == 0:
       model.checkpoint(['h', 'phi', 'N', 'q'])
     
     if MPI_rank == 0: 
@@ -73,9 +77,9 @@ for n in range(len(ns)):
     i += 1
     
   end_time = time.time()
-  np.savetxt('Time_' + str(ns[n]), np.array([start_time, end_time, end_time - start_time]))
+  np.savetxt(result_dirs[n] + '/Time_E' + str(ns[n]), np.array([start_time, end_time, end_time - start_time]))
 
-  model.write_steady_file(result_dirs[n] + '/end_D' + str(ns[n]))
+  model.write_steady_file(result_dirs[n] + '/steady_E' + str(ns[n]))
 
 
   

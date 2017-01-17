@@ -16,7 +16,7 @@ MPI_rank = MPI.rank(mpi_comm_world())
 # Input file is steady state from A1
 input_file = '../../inputs/D/steady_A1.hdf5'
 # Result output directories
-result_dirs = ['results_D' + str(n) +'_year1' for n in ns]
+result_dirs = ['results_D' + str(n) for n in ns]
 
 ## Params
 
@@ -39,7 +39,6 @@ for n in range(len(ns)):
 
   # Create the sheet model
   model = SheetModel(model_inputs)
-  t = 0.0
 
   # Temperature at 0m  
   def temp(t):
@@ -60,8 +59,8 @@ for n in range(len(ns)):
   
   # Seconds per day
   spd = pcs['spd']
-  # End time
-  T = 1.0 * 365.0 * spd
+  # Seconds per year
+  spy = pcs['spy']
   # Time step
   dt = spd / 20.0
   # Iteration count
@@ -69,34 +68,48 @@ for n in range(len(ns)):
   
   # Time the run  
   start_time = time.time()
+  # Number of years
+  year = 1
+
+  # Put output for each year in a separate folder
+  while year <= 7:
+    
+    pvd_dir = result_dirs[n] + '/year' + str(year) + '/'
+    out_pfo = File(pvd_dir + 'pfo.pvd')
+    out_h = File(pvd_dir + 'h.pvd')
+    out_N = File(pvd_dir + 'N.pvd')
+    
+    # Run the model for a year
+    while model.t <= year * spy:  
   
-  while model.t < T:  
-
-    if MPI_rank == 0: 
-      current_time = model.t / spd
-      print 'Current time: ' + str(current_time)
+      if MPI_rank == 0: 
+        current_time = model.t / spd
+        print 'Current time: ' + str(current_time)
+        
+      # Update melt
+      update_m(model.t)
+      model.set_m(m)
       
-    # Update melt
-    update_m(model.t)
-    model.set_m(m)
-    
-    model.step(dt)
-    
-    if i % 16 == 0:
-      model.write_pvds(['pfo', 'h', 'm'])
+      model.step(dt)
       
-    if i % 4 == 0:
-      model.checkpoint(['h', 'phi', 'N', 'm', 'q'])
-    
-    if MPI_rank == 0: 
-      print
+      if i % 20 == 0:
+        out_pfo << model.pfo
+        out_h << model.h
+        out_N << model.N
+        
+      if i % 20 == 0:
+        model.checkpoint(['h', 'phi', 'N', 'm', 'q'])
       
-    i += 1
+      if MPI_rank == 0: 
+        print
+        
+      i += 1
     
-  end_time = time.time()
-  np.savetxt('Time_' + str(ns[n]), np.array([start_time, end_time, end_time - start_time]))
-
-  model.write_steady_file(result_dirs[n] + '/end_D' + str(ns[n]))
+    end_time = time.time()
+    np.savetxt(result_dirs[n] + '/Time_year' + str(year), np.array([start_time, end_time, end_time - start_time]))
+    
+    model.write_steady_file(result_dirs[n] + '/year' + str(year))
+    year += 1
 
 
   

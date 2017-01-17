@@ -36,8 +36,6 @@ ms.mark(boundaries, 1)
 
 ## Write input files
 for n in range(5):
-  print n
-  
   out_file = "../../inputs/E/input_E" + str(n + 1) + ".hdf5"
   
   bed_param = params[n]  
@@ -58,7 +56,7 @@ for n in range(5):
   class Thickness(Expression):
     def eval(self,value,x):
       bed, thickness = valley(np.array([x[0]]), np.array([x[1]]), bed_param)
-      value[0] = thickness[0]
+      value[0] = thickness[0] + 0.1
   
   # Surface
   H = project(Thickness(degree = 1), V_cg)  

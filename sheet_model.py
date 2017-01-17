@@ -66,7 +66,7 @@ class SheetModel(Model):
     # If there are boundary conditions specified, use them. Otherwise apply
     # default bc of 0 pressure on the margin
     if 'point_bc' in self.model_inputs:
-      self.d_bcs = DirichletBC(self.V_cg, self.phi_m, self.model_inputs['point_bc'], method="pointwise")
+      self.d_bcs = [DirichletBC(self.V_cg, self.phi_m, self.model_inputs['point_bc'], method="pointwise")]
     elif 'd_bcs' in self.model_inputs:
       # Dirichlet boundary conditions
       self.d_bcs = self.model_inputs['d_bcs']    
@@ -124,6 +124,7 @@ class SheetModel(Model):
     self.u_b_out = File(self.out_dir + "u_b.pvd")
     self.k_out = File(self.out_dir + "k.pvd")
     self.q_out = File(self.out_dir + "q.pvd")
+    self.N_out = File(self.out_dir + "N.pvd")
     
     
   # Look at the input file to check if we're starting or continuing a simulation
@@ -273,6 +274,8 @@ class SheetModel(Model):
         self.q_out << self.q_func
       if 'k' in to_write:
         self.k_out << self.k
+      if 'N' in to_write:
+        self.N_out << self.N
 
 
   # Write checkpoint files to an hdf5 file

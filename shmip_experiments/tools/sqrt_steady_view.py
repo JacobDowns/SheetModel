@@ -61,7 +61,7 @@ class SqrtSteadyView(SteadyView):
     return self.width_integrate(self.q)
     
   
-view = SqrtSteadyView('/home/fenics/shared/SheetModel/shmip_experiments/sims/A/results_A5/steady_A5.hdf5')
+view = SqrtSteadyView('/home/fenics/shared/SheetModel/shmip_experiments/sims/A/results_A5_a/steady_A5.hdf5')
 
 
 
