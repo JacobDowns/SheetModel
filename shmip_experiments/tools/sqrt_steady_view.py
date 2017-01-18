@@ -60,33 +60,3 @@ class SqrtSteadyView(SteadyView):
   def width_integrate_q(self):
     return self.width_integrate(self.q)
     
-  
-view = SqrtSteadyView('/home/fenics/shared/SheetModel/shmip_experiments/sims/A/results_A5_b/steady_A5.hdf5')
-
-
-
-increments = 250
-xs = np.linspace(1, 100e3, increments)
-
-# Compute width averaged effective pressure
-N_int = view.width_integrate_N()
-Ns = [N_int([x, 20e3]) for x in xs]
-Ns = np.array(Ns) / 20e3   
-
-# Compute width averaged flux
-q_int = view.width_integrate_q()
-qs = [q_int([x, 20e3]) for x in xs]
-qs = np.array(qs) / 20e3   
-
-# Compute width averaged 
-
-np.savetxt('xs.txt', xs) 
-np.savetxt('A5_N_mean.txt', Ns)
-np.savetxt('A5_q_mean.txt', qs)
-    
-#tools.write_nc()
-    
-    
-    
-    
-    

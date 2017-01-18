@@ -8,3 +8,5 @@
 *.hdf5
 *.xdmf
 *.nc
+*.txt
+*.png

@@ -15,6 +15,7 @@ ns = [1]
 MPI_rank = MPI.rank(mpi_comm_world())
 # Input file is steady state from A1
 input_file = '../../inputs/D/steady_A1.hdf5'
+#input_file = 'results_D1/year7.hdf5'
 # Result output directories
 result_dirs = ['results_D' + str(n) for n in ns]
 
@@ -36,6 +37,7 @@ for n in range(len(ns)):
   model_inputs['input_file'] = input_file
   model_inputs['out_dir'] = result_dirs[n]
   model_inputs['constants'] = pcs
+  model_inputs['checkpoint_file'] = 'out1'
 
   # Create the sheet model
   model = SheetModel(model_inputs)
@@ -65,14 +67,14 @@ for n in range(len(ns)):
   dt = spd / 20.0
   # Iteration count
   i = 0
-  
   # Time the run  
   start_time = time.time()
   # Number of years
   year = 1
+  
 
   # Put output for each year in a separate folder
-  while year <= 7:
+  while year <= 15:
     
     pvd_dir = result_dirs[n] + '/year' + str(year) + '/'
     out_pfo = File(pvd_dir + 'pfo.pvd')
@@ -80,8 +82,7 @@ for n in range(len(ns)):
     out_N = File(pvd_dir + 'N.pvd')
     
     # Run the model for a year
-    while model.t <= year * spy:  
-  
+    while model.t < year * spy:  
       if MPI_rank == 0: 
         current_time = model.t / spd
         print 'Current time: ' + str(current_time)

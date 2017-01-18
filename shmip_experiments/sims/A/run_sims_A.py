@@ -14,7 +14,7 @@ ns = [5]
 
 MPI_rank = MPI.rank(mpi_comm_world())
 input_files = ['../../inputs/A/input_A' + str(n) + '.hdf5' for n in ns]
-result_dirs = ['results_A' + str(n) + '_b' for n in ns]
+result_dirs = ['resultsc_A' + str(n) + '_c' for n in ns]
 
 for n in range(len(ns)):
   
@@ -28,7 +28,7 @@ for n in range(len(ns)):
   # Create the sheet model
   model = SheetModel(model_inputs)
   
-  k = interpolate(Constant(9.5e-3), model.V_cg)
+  k = interpolate(Constant(9e-3), model.V_cg)
   model.set_k(k)
   
 
@@ -37,7 +37,7 @@ for n in range(len(ns)):
   # Seconds per day
   spd = pcs['spd']
   # End time
-  T = 1000.0 * spd
+  T = 1500.0 * spd
   # Time step
   dt = spd / 4.0
   # Iteration count
@@ -68,7 +68,7 @@ for n in range(len(ns)):
   model.write_steady_file(result_dirs[n] + '/steady_A' + str(ns[n]))
 
   end_time = time.time()
-  np.savetxt(result_dirs[n] + 'Time_A' + str(ns[n]), np.array([start_time, end_time, end_time - start_time]))
+  np.savetxt(result_dirs[n] + '/Time_A' + str(ns[n]), np.array([start_time, end_time, end_time - start_time]))
   
 
 

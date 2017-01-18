@@ -11,7 +11,7 @@ import time
 import numpy as np 
 
 #ns = range(1,6)
-ns = [3]
+ns = [4]
 
 MPI_rank = MPI.rank(mpi_comm_world())
 # Input files 
@@ -48,7 +48,7 @@ for n in range(len(ns)):
   # Seconds per day
   spd = pcs['spd']
   # End time
-  T = 2500.0 * spd
+  T = 3500.0 * spd
   # Time step
   dt = spd / 4.0
   # Iteration count

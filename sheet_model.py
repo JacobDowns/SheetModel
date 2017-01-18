@@ -59,6 +59,8 @@ class SheetModel(Model):
     self.p_i = project(pcs['rho_i'] * pcs['g'] * self.H, self.V_cg)
     # Potential at overburden pressure
     self.phi_0 = project(self.phi_m + self.p_i, self.V_cg)
+    # Update phi
+    self.update_phi()
     
     
     ### Setup boundary conditions
@@ -87,7 +89,7 @@ class SheetModel(Model):
       prm['newton_solver']['relative_tolerance'] = 1e-9
       prm['newton_solver']['absolute_tolerance'] = 1e-6
       prm['newton_solver']['error_on_nonconvergence'] = False
-      prm['newton_solver']['maximum_iterations'] = 25
+      prm['newton_solver']['maximum_iterations'] = 30
       
       self.newton_params = prm
       
@@ -215,7 +217,7 @@ class SheetModel(Model):
         pass
       
       if has_phi_0:
-        self.input_file.read(self.phi, "phi_0")  
+        self.input_file.read(self.phi, "phi_0")
       
       
     except Exception as e:
