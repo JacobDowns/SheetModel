@@ -21,3 +21,5 @@ qs2 = loadtxt('A5_q_mean.txt')
 plot(xs1, Ns1, 'ko-', linewidth = 2)
 plot(xs2, Ns2, 'ro-', linewidth = 2)
 show()
+
+
