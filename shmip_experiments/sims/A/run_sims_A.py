@@ -10,11 +10,11 @@ from dolfin import MPI, mpi_comm_world
 import time
 import numpy as np 
 
-ns = [1]
+ns = range(1,7)
 
 MPI_rank = MPI.rank(mpi_comm_world())
 input_files = ['../../inputs/A/input_A' + str(n) + '.hdf5' for n in ns]
-result_dirs = ['resultsc_A' + str(n) + '_c' for n in ns]
+result_dirs = ['results_A' + str(n) for n in ns]
 
 for n in range(len(ns)):
   
@@ -36,7 +36,7 @@ for n in range(len(ns)):
   # Seconds per day
   spd = pcs['spd']
   # End time
-  T = 1500.0 * spd
+  T = 1250.0 * spd
   # Time step
   dt = spd / 4.0
   # Iteration count
