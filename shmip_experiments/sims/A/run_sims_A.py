@@ -29,8 +29,7 @@ for n in range(len(ns)):
   model = SheetModel(model_inputs)
   
   #k = interpolate(Constant(9e-3), model.V_cg)
-  model.set_k(k)
-  
+  #model.set_k(k)
 
   ### Run the simulation
   
