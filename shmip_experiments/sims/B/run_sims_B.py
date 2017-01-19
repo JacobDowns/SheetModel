@@ -10,7 +10,7 @@ from dolfin import MPI, mpi_comm_world
 import time
 import numpy as np 
 
-ns = range(1,6)
+ns = [1]
 
 MPI_rank = MPI.rank(mpi_comm_world())
 input_files = ['../../inputs/B/input_B' + str(n) + '.hdf5' for n in ns]
@@ -33,9 +33,9 @@ for n in range(len(ns)):
   # Seconds per day
   spd = pcs['spd']
   # End time
-  T = 1250.0 * spd
+  T = 10.0 * spd
   # Time step
-  dt = spd / 4.0
+  dt = spd / 20.0
   # Iteration count
   i = 0
   
@@ -47,12 +47,12 @@ for n in range(len(ns)):
       current_time = model.t / spd
       print 'Current time: ' + str(current_time)
     
-    model.step_constrained(dt)
+    model.step(dt)
     
-    if i % 4 == 0:
+    if i % 1 == 0:
       model.write_pvds(['pfo', 'h'])
       
-    if i % 4 == 0:
+    if i % 1 == 0:
       model.checkpoint(['h', 'phi', 'N'])
     
     if MPI_rank == 0: 

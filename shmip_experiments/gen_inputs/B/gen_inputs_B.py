@@ -20,7 +20,7 @@ u_b = interpolate(Constant(1e-6), V_cg)
 # Conductivity 
 k = interpolate(Constant(5e-3), V_cg)
 # Initial sheet height  
-h = interpolate(Constant(0.03), V_cg)
+h = interpolate(Constant(0.09), V_cg)
 
 # Length of ice sheet 
 length = 100e3
@@ -73,8 +73,12 @@ for n in range(len(ns)):
   
   ## Calculate the melt function 
   
+  # Moulin locations and fluxes
   data = np.loadtxt('B' + str(ns[n]) + '_M.csv', delimiter=',')
+  # Moulin melt function
   m = Function(V_cg)
+  # Initial condition for h
+  h = Function(V_cg)
   
   if n == 0:
       data = np.array([data])
@@ -113,6 +117,8 @@ for n in range(len(ns)):
   # Create the melt function
   m.vector()[:] = 7.93e-11
   m.vector()[indexes] += values
+  h.vector()[:] = 0.09
+  h.vector()[indexes] = 1.0
   
   
   ## Write input file 
