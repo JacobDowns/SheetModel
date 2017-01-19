@@ -47,9 +47,9 @@ for n in range(len(ns)):
       current_time = model.t / spd
       print 'Current time: ' + str(current_time)
     
-    model.step(dt)
+    model.step_constrained(dt)
     
-    if i % 8 == 0:
+    if i % 4 == 0:
       model.write_pvds(['pfo', 'h'])
       
     if i % 4 == 0:
