@@ -74,7 +74,7 @@ for n in range(len(ns)):
   
 
   # Put output for each year in a separate folder
-  while year <= 15:
+  while year <= 12:
     
     pvd_dir = result_dirs[n] + '/year' + str(year) + '/'
     out_pfo = File(pvd_dir + 'pfo.pvd')

@@ -9,7 +9,7 @@ from time_view import *
 from pylab import *
 
 # Load hdf5 file
-view = TimeView('results_D1/out.hdf5')
+view = TimeView('results_D1/out1.hdf5')
 
 ### Sampe N at points
 

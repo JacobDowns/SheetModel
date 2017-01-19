@@ -11,7 +11,7 @@ import time
 import numpy as np 
 
 #ns = range(1,6)
-ns = [4]
+ns = [5]
 
 MPI_rank = MPI.rank(mpi_comm_world())
 # Input files 
