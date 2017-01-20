@@ -333,6 +333,7 @@ class SheetModel(Model):
     output_file.write(self.k, "k_0")
     output_file.write(self.N, 'N_0')
     output_file.write(self.phi, 'phi_0')
+    output_file.write(self.pfo, 'pfo_0')
     
     # Compute magnitude of flux
     q_mag = project(sqrt(dot(self.phi_solver.q, self.phi_solver.q)), self.V_cg)
