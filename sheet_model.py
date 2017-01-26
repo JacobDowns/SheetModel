@@ -299,6 +299,9 @@ class SheetModel(Model):
       self.output_file.write(self.pfo, "pfo", self.t)
     if 'N' in to_write:
       self.output_file.write(self.N, "N", self.t)
+    if 'q' in to_write:
+      q_mag = project(sqrt(dot(self.phi_solver.q, self.phi_solver.q)), self.V_cg)
+      self.output_file.write(q_mag, "q", self.t)
       
     self.output_file.flush()
     
@@ -316,6 +319,10 @@ class SheetModel(Model):
   # Sets the hydraulic conductivity
   def set_k(self, new_k):
     self.k.assign(project(new_k, self.V_cg))
+    
+  # Set sheet height
+  def set_h(self, new_h):
+    self.h.assign(project(new_h, self.V_cg))
   
   
   # Write out a steady state file we can use to start new simulations
