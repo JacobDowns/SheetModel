@@ -72,7 +72,7 @@ class PhiSolver(object):
                                           "maximum_iterations": 250,
                                           "report": True,
                                           "error_on_nonconvergence": False, 
-                                          "relative_tolerance" : 1e-9,
+                                          "relative_tolerance" : 1e-10,
                                           "absolute_tolerance" : 1e-6}}
                       
     # Set object variables                  
