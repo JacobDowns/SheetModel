@@ -48,7 +48,7 @@ class HSolver():
       return dhdt
     
     # Set up ODE solver
-    ode_solver = ode(rhs).set_integrator('dopri5', max_step = 60.0, atol = 5e-7, rtol = 1e-8, nsteps = 1000)
+    ode_solver = ode(rhs).set_integrator('dopri5', max_step = 60.0, atol = 1e-8, rtol = 1e-12, nsteps = 1000)
     ode_solver.set_initial_value(h0, t0)
 
 
