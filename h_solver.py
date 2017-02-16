@@ -63,8 +63,8 @@ class HSolver():
     ode_solver.setRHSFunction(ode.rhs)
     ode_solver.setTime(0.0)
     ode_solver.setInitialTimeStep(0.0, 1.0)
-    ode_solver.setTolerances(atol=1e-8, rtol=1e-12)
-    ode_solver.setMaxSteps(50000)
+    ode_solver.setTolerances(atol=1e-9, rtol=1e-13)
+    ode_solver.setMaxSteps(10000)
     ode_solver.setExactFinalTime(ode_solver.ExactFinalTimeOption.MATCHSTEP)
 
 
@@ -83,10 +83,12 @@ class HSolver():
     self.ode.v_c_0 = self.A * self.N.vector().array()**3
     # Step the ODE forward
     self.ode_solver.setTime(0.0)
-    self.ode_solver.setDuration(dt)
+    self.ode_solver.setMaxTime(dt)
     self.ode_solver.solve(self.h_v)
-    print('steps %d (%d rejected)'
-          % (self.ode_solver.getStepNumber(), self.ode_solver.getStepRejections()))
+    
+    if self.MPI_rank == 0:
+      print('steps %d (%d rejected)'
+            % (self.ode_solver.getStepNumber(), self.ode_solver.getStepRejections()))
     # Apply changes to vector
     self.model.h.vector().apply("insert")
   
