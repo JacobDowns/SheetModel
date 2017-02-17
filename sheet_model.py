@@ -175,7 +175,7 @@ class SheetModel(Model):
     
   # Steps phi and h forward by dt
   def step(self, dt):
-    self.phi_solver.step()
+    self.phi_solver.step(dt)
     self.h_solver.step(dt)
     self.t += dt
     
