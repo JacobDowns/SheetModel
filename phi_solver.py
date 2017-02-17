@@ -214,9 +214,6 @@ class PhiSolver(object):
     
   # Step PDE for phi forward by dt. No constraints.
   def step(self, dt):
-    self.step_be(dt)
-
-    """"
     # Step the ODE forward
     self.ts.setTime(0.0)
     self.ts.setMaxTime(dt)
@@ -230,7 +227,7 @@ class PhiSolver(object):
     # Apply changes to vector
     self.phi.vector().apply("insert")
     # Update phi
-    self.model.update_phi()"""
+    self.model.update_phi()
     
     
   # Step PDE for phi forward by dt. Constrain using SNES solver. 
