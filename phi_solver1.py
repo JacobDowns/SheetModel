@@ -158,14 +158,14 @@ class PhiSolver(object):
     ts.setIFunction(ode.evalFunction, f_p)
     ts.setIJacobian(ode.evalJacobian, J_p)
     ts.setTime(0.0)
-    ts.setInitialTimeStep(0.0, 60.0*10.0)   
+    ts.setInitialTimeStep(0.0, 60.0*5.0)   
     ts.setTolerances(atol=1e-5, rtol=1e-8)
-    ts.setMaxSteps(150)
+    ts.setMaxSteps(500)
     ts.setExactFinalTime(ts.ExactFinalTimeOption.MATCHSTEP)
     ts.setMaxSNESFailures(-1)
     
     snes = ts.getSNES()             # Nonlinear solver
-    snes.setTolerances(max_it=15)   # Stop nonlinear solve after 10 iterations (TS will retry with shorter step)
+    snes.setTolerances(rtol = 1e-9, atol=5e-6, max_it=20)   # Stop nonlinear solve after 10 iterations (TS will retry with shorter step)
     ksp = snes.getKSP()             # Linear solver
     #ksp.setType(ksp.Type.CG)        # Conjugate gradients
     #pc = ksp.getPC()                # Preconditioner
@@ -199,9 +199,9 @@ class PhiSolver(object):
     
   # Step PDE for phi forward by dt. No constraints.
   def step(self, dt):
-    self.step_be(dt)
+    #self.step_be(dt)
     # Step the ODE forward
-    """self.ts.setTime(0.0)
+    self.ts.setTime(0.0)
     self.ts.setMaxTime(dt)
     self.ts.solve(self.phi_v)
     
@@ -213,7 +213,7 @@ class PhiSolver(object):
     self.phi.vector().set_local(self.phi_v.getArray())
     self.phi.vector().apply("insert")
     # Update phi
-    self.model.update_phi()"""
+    self.model.update_phi()
     
     
   # Step PDE for phi forward by dt. Constrain using SNES solver. 
