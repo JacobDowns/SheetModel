@@ -2,6 +2,7 @@ from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from petsc4py import PETSc
 import numpy as np
+from bdf import *
 
 """ Solves phi with h fixed."""
 
@@ -25,10 +26,6 @@ class PhiSolver(object):
     # Potential
     phi = model.phi
     self.phi = phi
-    # Potential at previous time step
-    phi1 = Function(V_cg)
-    phi1.assign(phi)
-    self.phi1 = phi1
     # Time derivative of phi
     phi_dot = Function(V_cg)
     self.phi_dot = phi_dot
@@ -61,8 +58,6 @@ class PhiSolver(object):
 
     ### Set up the PDE for the potential 
 
-    # Unknown 
-    #phi.assign(phi_0)
     # Expression for effective pressure in terms of potential
     N = phi_0 - phi
     # Flux vector
@@ -71,7 +66,6 @@ class PhiSolver(object):
     w = conditional(gt(h_r - h, 0.0), u_b * (h_r - h) / Constant(l_r), 0.0)
     # Closing term
     v = Constant(A) * h * N**3
-    
     # Test function
     theta = TestFunction(model.V_cg)
     # Variational form for the PDE
@@ -83,21 +77,12 @@ class PhiSolver(object):
     C = Constant(e_v/(rho_w * g))
 
 
-    ### Variational form used to compute f for PETSc
-    F1 = (theta*C*phi_dot - dot(grad(theta), q) + theta*(w - v - m))*dx
+    ### Variational form 
+    F = (theta*C*phi_dot - dot(grad(theta), q) + theta*(w - v - m))*dx
+    F = theta*phi_dot*dx
     
-    ### Variational form used to compute Jacobian for PETSc
-    shift = Constant(1.0)
-    F2 = (theta*shift*C*phi - dot(grad(theta), q) + theta*(w - v - m))*dx
-    # Jacobian as form expression
-    dphi = TrialFunction(V_cg)
-    J = derivative(F2, phi, dphi)
-    
-    ### Variational form for backward Euler
-    dt = Constant(1.0)
-    F3 = (theta*C*(phi - phi1) + dt*(-dot(grad(theta), q) + theta*(w - v - m)))*dx
-    J3 = derivative(F3, phi, dphi) 
-    
+    bdf = BDF(F, self.phi, self.phi_dot, self.model) 
+    quit()
     
     self.F1 =F1
     self.J = J

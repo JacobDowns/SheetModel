@@ -2,7 +2,7 @@ from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from constants import *
 from model import *
-from phi_solver1 import *
+from phi_solver import *
 from h_solver import *
 
 

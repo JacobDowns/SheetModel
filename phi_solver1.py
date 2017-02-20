@@ -1,6 +1,7 @@
 from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from petsc4py import PETSc
+from BDF import *
 
 """ Solves phi with h fixed."""
 
@@ -100,6 +101,11 @@ class PhiSolver(object):
     dt = Constant(1.0)
     F_BE = (theta*C*(phi - phi1) + dt*(-dot(grad(theta), q) + theta*(w - v - m)))*dx
     J_BE = derivative(F_BE, phi, dphi) 
+    
+    bdf = BDF(self.phi, self.phi_dot)
+    
+    print dir(F_BE)
+    quit()
     
     
     ### Set up 
