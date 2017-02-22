@@ -164,8 +164,6 @@ class BDF(object):
     #self.try_step(h, self.d1_solver)
     (i, converged) = self.d1_solver.solve()   
     
-    File('U.pvd') << self.U
-    
     # Update fields
     self.h2.assign(self.h1)
     self.h1.assign(self.h)
