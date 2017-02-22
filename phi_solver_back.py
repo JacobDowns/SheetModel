@@ -79,86 +79,20 @@ class PhiSolver(object):
     ### Set up time dependent pressure PDE
 
     F = (theta*C*phi_dot - dot(grad(theta), q) + theta*(w - v - m))*dx
-    F = theta*phi_dot*dx
     
     # BDF time stepper
     bdf = BDF(F, phi, phi_dot, model)
 
     self.model = model
+    self.bdf = bdf
     self.phi_dot = phi_dot
     self.phi = phi
     self.q = q
-
     
     
-  def step_be_manual(self, dt):
-    
-    dt = 100.0
-    #self.dt.assign(dt)
-    #solve(self.F3 == 0, self.phi, self.model.d_bcs, J = self.J3, solver_parameters = self.model.newton_params)
-
-    # Perturbation to be solved for
-    dphi = Function(self.V_cg)
-    # Old solution
-    phi_old = Function(self.V_cg)
-    
-    #dt = 10.0
-    self.shift.assign(1.0 / dt)
-    eps = 1.0
-    tol = 1e-5
-    i = 0
-    maxiter = 25
-    
-    while eps > tol and i < maxiter:
-        i += 1
-        # Compute F(x)
-        F_x = assemble(-self.F3)
-        self.model.d_bcs[0].apply(F_x)
-        print "F: ", np.abs(F_x.array()).max()
-        quit()
-        print np.linalg.norm(F_x.array())
-        # Compute J(x)
-        J_x = assemble(self.J)
-        self.model.d_bcs[0].apply(J_x)
-        # Solve for perturbation
-        solve(J_x, dphi.vector(), F_x)
-        # Store old solution
-        phi_old.assign(self.phi)
-        # Update phi
-        self.phi.vector()[:] += dphi.vector().array()
-        # Update phi dot
-        self.phi_dot.vector()[:] = (self.phi.vector().array() - phi_old.vector().array()) / dt
-        
-        #self.phi_dot.vector()[:] =
-    
-    
-    
-     # Step PDE for phi forward by dt. No constraints.
+  # Step PDE for phi forward by dt. No constraints.
   def step(self, dt):
-    self.step_be_manual(dt)
-    
-    """# Step the ODE forward
-    self.ts.setTime(0.0)
-    self.ts.setMaxTime(dt)
-    
-    self.ts.solve(self.phi_v)
-    
-    if self.MPI_rank == 0:
-      print('steps %d (%d rejected)'
-            % (self.ts.getStepNumber(), self.ts.getStepRejections()))
-    
-    # Apply changes to vector
-    self.phi.vector().apply("insert")
-    # Update phi
-    self.model.update_phi()"""
-    
-
-    
-    
-  # Step PDE for phi forward by dt. Constrain using SNES solver. 
-  def step_constrained(self):
-    # Solve for potential
-    (i, converged) = self.phi_solver.solve()
-    # Update phi
-    self.model.update_phi()  
+    self.bdf.step_d1(dt)
+    self.model.update_phi()
+     
     

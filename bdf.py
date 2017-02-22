@@ -6,8 +6,12 @@ class BDF(object):
   
   def __init__(self, F, U, U_dot, model):
     
+    # Process number
+    self.MPI_rank = MPI.rank(mpi_comm_world())
+    
     # Unknown at previous three time steps
     U1 = Function(model.V_cg)
+    U1.assign(U)
     U2 = Function(model.V_cg)
     U3 = Function(model.V_cg)
 
@@ -40,16 +44,36 @@ class BDF(object):
     J1 = derivative(F1, U, dU) 
     J2 = derivative(F2, U, dU) 
     
+    problem_d1 = NonlinearVariationalProblem(F1, U, model.d_bcs, J1)
+    problem_d2 = NonlinearVariationalProblem(F2, U, model.d_bcs, J2)
+    
+    snes_solver_parameters = {"nonlinear_solver": "snes",
+                      "snes_solver": {"linear_solver": "lu",
+                                      "maximum_iterations": 30,
+                                      "report": True,
+                                      "line_search" : 'basic',
+                                      "error_on_nonconvergence": False, 
+                                      "relative_tolerance" : 1e-10,
+                                      "absolute_tolerance" : 1e-6}}
+    
+    d1_solver = NonlinearVariationalSolver(problem_d1)
+    d1_solver.parameters.update(snes_solver_parameters)
+    d2_solver = NonlinearVariationalSolver(problem_d2)
+    d2_solver.parameters.update(snes_solver_parameters)
+    
+
+    
     
     ### Truncation error expression
     
-    E1 = ((U - U1) / h)
-    E2 = (1.0 + (h/h1))*((U1 - U2)/h1)
-    E3 = (h/(h1*h2))*(U1 - U2)
-    E = ((h + h1)/6.0)*(E1 - E2 + E3)   
+    #E1 = ((U - U1) / h)
+    #E2 = (1.0 + (h/h1))*((U1 - U2)/h1)
+    #E3 = (h/(h1*h2))*(U1 - U2)
+    #E = ((h + h1)/6.0)*(E1 - E2 + E3)   
     
     self.params = {}
-    self.params['initial_step'] = 5.0 * 60.0    
+    self.params['initial_step'] = 10.0 * 60.0   
+    self.params['max_tries'] = 3
     
     ### Set local vars
     self.U = U
@@ -58,73 +82,97 @@ class BDF(object):
     self.U3 = U3
     self.h = h
     self.h1 = h1
-    self.F1 = F1
-    self.F2 = F2
-    self.J1 = J1
-    self.J2 = J2
+    self.h2 = h2
+    self.d1_solver = d1_solver
+    self.d2_solver = d2_solver
     self.model = model
+    self.w1 = w1
     # Number of steps we've taken
     self.steps = 0
     # Function to store truncation error
-    self.E = E
-    self.E_func = Function(model.V_cg)
-    
+    #self.E = E
+    #self.E_func = Function(model.V_cg)
   
-  def first_step(self, dt):
-    # Step forward until we hit dt
+    
+    self.bootstrapped = False
+   
+  
+  def step(self, dt):
     t = 0.0
     
-    # Take two Euler steps
-    h = self.params['initial_step']
-    if h * 2.0 >= dt:
-      h = dt / 3.0
+    # If the ODE solver isn't primed then do it now
+    if not self.bootstrapped:
+      # Make sure taking two priming steps doesn't take us beyond dt
+      h_init = self.params['initial_step']
+      if h_init * 2.0 >= dt:
+        h_init = dt / 3.0
+      
+      # Take degree 1 step
+      self.step_d1(h_init)
+      t += float(self.h)
+      
+      # Take degree 2 step
+      self.try_step(h_init, self.d2_solver) 
+      t += float(self.h)
+      
+      # Update fields
+      self.h2.assign(self.h1)
+      self.h1.assign(self.h)
+      self.U3.assign(self.U2)
+      self.U2.assign(self.U1)
+      self.U1.assign(self.U)
     
-    euler_steps = 0
-    while euler_steps < 2:
-      # Try to step forward with backward Euler and test convergence
-      if self.try_step_d1(h):
-        euler_steps += 1
-        self.h1.assign(h)
-        self.U1.assign(self.U)
-        self.U2.assign(self.U1)
-        t += h
-      else :
-        h /= 2.0
-        
-    # Now step forward with a second order method
+    # Take steps until we reach dt
     while t < dt:
       h = min(h, dt - t)
       
-      if self.try_step_d2(h):
-        
-        # Estimate truncation error
-        err = (self.U.array() - self.U2.array()) / float(self.h))
-        err -= (1.0 + (float(self.h) / float(self.h1)))
-        
-        self.error.set_local()
-        error = (float(h1) + h) / 6.0
-        
-        
-        self.h1.assign(h)
-        self.U1.assign(self.U)
-        self.U2.assign(self.U1)
-        t += h
-        
-        # Calculate new time step
-        
-
-      else :
-        h /= 2.0
+     
         
           
-        
     
-  # Try a step forward with backward Euler
-  def try_step_d1(self, h):
-    self.h.assign(h)
-    solve(self.F1 == 0, self.U, self.model.d_bcs, J = self.J1, solver_parameters = self.model.newton_params)
-    # Return true if it converges
-    return True
+    
+  # Take a step with the degree 1 or 2 BDF
+  def try_step(self, h, problem):
+    # Try different time steps until the solver converges. If the solver doesn't 
+    # converge after halving the time step some number of times, then just accept the solution.
+    success = False
+    tries = 0 
+    max_tries = self.params['max_tries']
+    while not success and tries < max_tries:
+      #print "tries", tries
+      #print "h"
+      self.h.assign(h)
+      
+      #print "w1", float(self.w1)
+      (i, converged) = problem.solve()
+      success = converged 
+      tries += 1
+
+      if success:
+        break
+      else:
+        # If solver didn't converge cut time step in half
+        h /= 2.0
+    
+    if tries == max_tries and self.MPI_rank == 0:
+      print "Solver did not converge after " + str(tries) + " tries. Accepting solution as is."
+  
+  
+  def step_d1(self, h):
+    
+    # Take a step
+    #self.try_step(h, self.d1_solver)
+    (i, converged) = self.d1_solver.solve()   
+    
+    File('U.pvd') << self.U
+    
+    # Update fields
+    self.h2.assign(self.h1)
+    self.h1.assign(self.h)
+    self.U3.assign(self.U2)
+    self.U2.assign(self.U1)
+    self.U1.assign(self.U)
+    
     
   # Try a step forward second order BDF
   def try_step_d2(self, h):
