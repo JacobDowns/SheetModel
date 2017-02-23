@@ -63,7 +63,7 @@ class HSolver():
     ode_solver.setRHSFunction(ode.rhs)
     ode_solver.setTime(0.0)
     ode_solver.setInitialTimeStep(0.0, 1.0)
-    ode_solver.setTolerances(atol=1e-8, rtol=1e-12)
+    ode_solver.setTolerances(atol=1e-9, rtol=1e-15)
     ode_solver.setMaxSteps(50000)
     ode_solver.setExactFinalTime(ode_solver.ExactFinalTimeOption.MATCHSTEP)
 
