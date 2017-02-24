@@ -57,8 +57,8 @@ class BDF(object):
                                       "report": True,
                                       "line_search" : 'basic',
                                       "error_on_nonconvergence": False, 
-                                      "relative_tolerance" : 1e-13,
-                                      "absolute_tolerance" : 1e-9}}
+                                      "relative_tolerance" : 1e-10,
+                                      "absolute_tolerance" : 1e-6}}
     
     d1_solver = NonlinearVariationalSolver(problem_d1)
     d1_solver.parameters.update(snes_solver_parameters)
@@ -75,9 +75,9 @@ class BDF(object):
     
     ### BDF solver params
     self.params = {}
-    self.params['initial_step'] = 0.0001 
+    self.params['initial_step'] = 0.001 
     self.params['max_tries'] = 3
-    self.params['rtol'] = 1e-15
+    self.params['rtol'] = 1e-3
     
     
     ### Set local vars
@@ -121,6 +121,7 @@ class BDF(object):
   def step(self, dt):
     t = 0.0
     
+    """
     # If the ODE solver isn't primed then do it now
     if not self.bootstrapped:
       # Make sure taking two priming steps doesn't take us beyond dt
@@ -155,21 +156,26 @@ class BDF(object):
     # Once the ODE solver is primed we can use dynamic time stepping
     
     # Take steps until we reach dt
-    h = float(self.h)
+    h = float(self.h)"""
     
     while t < dt:
       h = min(h, dt - t)
       
       # Take a step      
       self.try_step(h, self.d2_solver) 
+      t += float(self.h)
+      
+      print "C1", float(self.C1)
+      print "C2", float(self.C2)
+      print "C3", float(self.C3), float(self.h)
       
       # Compute local truncation error
-      self.compute_LTE()
-      print "LTE", self.LTE_func.vector().norm('l2')   
+      """self.compute_LTE()
+      print self.LTE_func.vector().norm('l2')
+      print np.sqrt((self.LTE_func.vector().array()**2).sum())      
       
       rtol = self.params['rtol']
-      sigma = (rtol / self.LTE_func.vector().norm('l2'))**(1.0 / 3.0)
-      print "sigma", sigma
+      sigma = (rtol / self.LTE_func.vector().norm('l2'))**(1.0 / 3.0)"""
       
       self.h2.assign(self.h1)
       self.h1.assign(self.h)
@@ -177,15 +183,25 @@ class BDF(object):
       self.U2.assign(self.U1)
       self.U1.assign(self.U)
       
-      h = (5.0 / 6.0) * sigma
+      
       t += h
       
       print t
       print self.U.vector().array()
+
+     
+      #h = (5.0 / 6.0)*sigma*h
+    
+
+      
+      
+      
       
     
   # Take a step with the degree 1 or 2 BDF
   def try_step(self, h, problem):
+    print "Try step: ", h
+    print
     # Try different time steps until the solver converges. If the solver doesn't 
     # converge after halving the time step some number of times, then just accept the solution.
     success = False
@@ -193,6 +209,11 @@ class BDF(object):
     max_tries = self.params['max_tries']
     while not success and tries < max_tries:
       self.h.assign(h)
+      
+      print float(self.h), float(self.C1)
+      print "w1", float(self.w1)
+      
+      #print "w1", float(self.w1)
       (i, converged) = problem.solve()
       success = converged 
       tries += 1
@@ -212,6 +233,8 @@ class BDF(object):
       h = min(h, dt - t)
       self.step_d1(h)
       t += h
+      print "t", t
+      print self.U.vector().array()
     
   
   def step_d1(self, h):

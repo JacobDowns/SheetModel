@@ -75,38 +75,39 @@ class PhiSolver(object):
     # Test function
     theta = TestFunction(model.V_cg)
     # Variational form for the PDE
-    F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
+    #F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
     # Get the Jacobian
     dphi = TrialFunction(model.V_cg)
-    J = derivative(F, phi, dphi) 
+    #J = derivative(F, phi, dphi) 
     # Constant in front of time derivative
     C = Constant(e_v/(rho_w * g))
 
 
     ### Variational form used to compute f for PETSc
-    F1 = (theta*C*phi_dot - dot(grad(theta), q) + theta*(w - v - m))*dx
+    #F1 = (theta*C*phi_dot - dot(grad(theta), q) + theta*(w - v - m))*dx
     
     
     ### Variational form used to compute Jacobian for PETSc
-    shift = Constant(1.0)
-    F2 = (theta*shift*C*phi - dot(grad(theta), q) + theta*(w - v - m))*dx
+    #shift = Constant(1.0)
+    #F2 = (theta*shift*C*phi - dot(grad(theta), q) + theta*(w - v - m))*dx
 
     # Jacobian as form expression
     dphi = TrialFunction(V_cg)
-    J = derivative(F2, phi, dphi)
+    #J = derivative(F2, phi, dphi)
     # Jacobian as fenics vector
-    J_f = assemble(J)
+    #J_f = assemble(J)
     # Jacobian as PETSc matrix
-    J_p = as_backend_type(J_f).mat()
+    #J_p = as_backend_type(J_f).mat()
     
     
     ### Variational form for backward Euler
     dt = Constant(1.0)
     F3 = (theta*C*(phi - phi1) + dt*(-dot(grad(theta), q) + theta*(w - v - m)))*dx
-    J_F3 = derivative(F3, phi, dphi) 
+    J3 = derivative(F3, phi, dphi) 
     
     ### Set up 
     
+    """
     for bc in model.d_bcs:
       bc.apply(phi.vector())
     
@@ -175,15 +176,16 @@ class PhiSolver(object):
     #    OptDB['mg_coarse_pc_type'] = 'svd' # more specific multigrid options
     #    OptDB['mg_levels_pc_type'] = 'sor'
     
-    #print snes.setType('ngmres')
+    #print snes.setType('ngmres')"""
     #quit()
-    self.F = F
-    self.J = J
+    self.dt = dt
+    self.F3 = F3
+    self.J3 = J3
     self.phi = phi
     self.model = model
     self.q = q
-    self.ts = ts
-    self.phi_p = phi_p
+    #self.ts = ts
+    #self.phi_p = phi_p
     
     
   def step_be_manual(self, t):
@@ -208,7 +210,7 @@ class PhiSolver(object):
         u.vector()[:] = u_k.vector() + omega*du.vector()
         u_k.assign(u)
         
-        self.phi_dot.vector()[:] = 
+        #self.phi_dot.vector()[:] = 
     
     
   # Step PDE for phi forward by dt using backward Euler
@@ -216,8 +218,8 @@ class PhiSolver(object):
     # Assign time step
     self.dt.assign(dt)
     # Solve for potential
-    (i, converged) = self.phi_solver.solve()
-    #solve(self.F3 == 0, self.phi, self.model.d_bcs, J = self.J_F3, solver_parameters = self.model.newton_params)
+    #(i, converged) = self.phi_solver.solve()
+    solve(self.F3 == 0, self.phi, self.model.d_bcs, J = self.J3, solver_parameters = self.model.newton_params)
     # Update phi1
     self.phi1.assign(self.phi)
     # Update fields derived from phi
@@ -226,8 +228,9 @@ class PhiSolver(object):
     
   # Step PDE for phi forward by dt. No constraints.
   def step(self, dt):
-    #self.step_be(dt)
-    # Step the ODE forward
+    self.step_be(dt)
+    
+    """# Step the ODE forward
     self.ts.setTime(0.0)
     self.ts.setMaxTime(dt)
     
@@ -240,7 +243,7 @@ class PhiSolver(object):
     # Apply changes to vector
     self.phi.vector().apply("insert")
     # Update phi
-    self.model.update_phi()
+    self.model.update_phi()"""
     
     
   # Step PDE for phi forward by dt. Constrain using SNES solver. 
