@@ -58,8 +58,6 @@ class PhiSolver(object):
 
     ### Set up the PDE for the potential 
 
-    # Unknown 
-    #phi.assign(phi_0)
     # Expression for effective pressure in terms of potential
     N = phi_0 - phi
     # Flux vector
@@ -71,11 +69,8 @@ class PhiSolver(object):
     
     # Test function
     theta = TestFunction(model.V_cg)
-    # Variational form for the PDE
-    #F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
     # Get the Jacobian
     dphi = TrialFunction(model.V_cg)
-    #J = derivative(F, phi, dphi) 
     # Constant in front of time derivative
     C = Constant(e_v/(rho_w * g))
 
@@ -92,18 +87,10 @@ class PhiSolver(object):
     dphi = TrialFunction(V_cg)
     J1 = derivative(F2, phi, dphi)
     J2 = derivative(F2, phi_dot, dphi)
-    # Jacobian as fenics vector
-    #J_f = assemble(J)
-    # Jacobian as PETSc matrix
-    #J_p = as_backend_type(J_f).mat()
     
     
-    ### Variational form for backward Euler
-    dt = Constant(1.0)
-    F3 = (theta*C*(phi - phi1) + dt*(-dot(grad(theta), q) + theta*(w - v - m)))*dx
-    J3 = derivative(F3, phi, dphi) 
     
-    ### Set up 
+    ### Set up  PDE solve in PETSc
     
     """
     for bc in model.d_bcs:

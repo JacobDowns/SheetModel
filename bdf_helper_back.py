@@ -22,26 +22,6 @@ class BDF_Helper(object):
     self.ts = zeros(6)
     
   
-  """
-  times = [t0, ..., tn]
-  t : Time to evaluate interpolating polynomial
-  
-  Suppose that p is the interpolating polynomial passing through 
-  (t0, y0), ... , (tk, yk). p(t) can be exrpessed as a linear combination
-  p(t) = c10*y0 + ... + ck*yk. This function returns the coefficients ci. 
-  """
-  def get_interp_coefs_at_t(self, times, t):
-    
-     for i in range(len(times)):
-      n_i = (t - times)
-      n_i[i] = 1.0
-
-      d_i = (times[i] - times)
-      d_i[i] = 1.0
-        
-      coefs[i] = prod(n_i / d_i)
-    
-  
   # Suppose p(t) is the interpolating polynomial passing through 
   # (t0, y0) ... (t_(k-1), y_(k-1) p evaluated at t can be expressed as a 
   # linear combination a0*y0 + ... + a_(k-1)*y_(k-1).This function returns 
@@ -160,7 +140,7 @@ class BDF_Helper(object):
       
 
 bdf_helper = BDF_Helper()
-#bdf_helper.get_coefs(3, array([6.0, 5.5, 5.0, 4.5, 2.0, 1.0]), 0.5)
+bdf_helper.get_coefs(3, array([6.0, 5.5, 5.0, 4.5, 2.0, 1.0]), 0.5)
 
 """from pylab import *
 

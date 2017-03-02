@@ -5,63 +5,54 @@ from bdf_helper import *
 
 class BDF(object):
   
-  def __init__(self, F, Y, Y_dot, bcs = [], params = None):
+  def __init__(self, F, y, y_prime, bcs = [], params = None):
     
     # Process number
     self.MPI_rank = MPI.rank(mpi_comm_world())
     # Get the function space
-    V  = Y.function_space()
+    V  = y.function_space()
+    
+    #Form F(Y_prime, Y, t) = 0
+    self.F = F
     
     # Unknown at previous three time steps
     # Form is [y0, ..., y5] with y0 most recent
-    Ys = [Y]
+    ys = [y]
     for i in range(1,6):
-      Ys.append(Function(V, name = 'Y_' + str(i)))
+      ys.append(Function(V, name = 'y_' + str(i)))
       
     # Set an initial condition for degree 1 method (backward Euler)
-    Ys[1].assign(Y)
-
+    ys[1].assign(y)
+    
     # Times of last 6 solutions
     # Form is [t0, ..., t5] with t0 most recent
     ts = np.zeros(6)
-
-    # A dictionary storing coefficients for methods of each order (1-5)
-    cofs = {}
-    for i in range(1,6):
-      cofs[i] = [Constant(0.0, name = 'bdf_c' + str(i) + '_' + str(j)) for j in range(i+1)]  
+    
   
+    ### Create form for computing Jacobian of F used in Netwon's method
   
-    ### Create forms for BDF 1-5
-  
-    forms = {}
-    for k in range(1,6):
-      # Get coefficients for BDFk
-      cofs_k = cofs[k]
-      # Approximation of derivative for BDFk
-      Y_dot_k = cofs_k[0] * Ys[0]
+    """
+    Linearizing F for Netwon's method we want Fenics to generate the matrix
       
-      for i in range(1, len(cofs_k)):
-        Y_dot_k += cofs_k[i] *  Ys[i]
+      F_y + (alpha_0 / h) * F_(y')
       
-      # Create the form
-      forms[k] = replace(F, {Y_dot : Y_dot_k})
-    
-    
-    ### Jacobians for each form
-    
-    dY = TrialFunction(V)
-    Js = {}
-    for k in range(1,6):
-      Js[k] = derivative(forms[k], Y, dY)
-
-    
-    ### SNES solvers for each order method
-    
-    solvers = {}
-    
-    for k in range(1,6):
-      prob_k = NonlinearVariationalProblem(forms[k], Y, bcs, Js[k])
-      solvers[k] = NonlinearVariationalSolver(prob_k)
+    Here F_y is the derivative of F wrt Y, F_(y') is derivative wrt y', alpha_0
+    is a constant that depends on the order and h is the time step. Here we'll
+    create a form that generates this matrix. 
+    """
+    # Leading coefficients for each order
+    alpha_0s = np.array([1.0, 3.0/2.0, 11.0/6.0, 25.0/12.0, 137.0/60.0])
+    # Standard trial function
+    dy = TrialFunction(V)
+    # Shift is a stand in for (alpha_0 / h). It depends on the time step and
+    # the method order
+    shift = Constant(1.0)
+    # F_y
+    F_y_form = derivative(F, y, dy)
+    # F_(y')
+    F_y_prime_form = derivative(F, y_prime, dy)
+    # Jocobian 
+    J = F_y_form + shift*F_y_prime_form
       
     
     ### BDF solver params
@@ -77,10 +68,8 @@ class BDF(object):
     
     ### Create some attributes
     
-    self.Ys = Ys
+    self.ys = ys
     self.ts = ts
-    self.cofs = cofs
-    self.solvers = solvers
     # Create a helper object to help compute coefficients and LTE 
     self.bdf_helper = BDF_Helper()
     # Set to true once the method has been bootstrapped
