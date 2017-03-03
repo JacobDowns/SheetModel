@@ -40,6 +40,7 @@ class BDF(object):
     is a constant that depends on the order and h is the time step. Here we'll
     create a form that generates this matrix. 
     """
+    
     # Leading coefficients for each order
     alpha_0s = np.array([1.0, 3.0/2.0, 11.0/6.0, 25.0/12.0, 137.0/60.0])
     # Standard trial function
@@ -53,6 +54,12 @@ class BDF(object):
     F_y_prime_form = derivative(F, y_prime, dy)
     # Jocobian 
     J = F_y_form + shift*F_y_prime_form
+    
+    
+    ### Predicted values
+    
+    self.y_p = Function(V)
+    self.y_prime_p = Function(V)
       
     
     ### BDF solver params
@@ -60,10 +67,13 @@ class BDF(object):
     self.params = params
     if self.params == None:
       self.params = {}
-      self.params['initial_step'] = 0.00005 
+      self.params['initial_step'] = 0.0005 
       self.params['max_tries'] = 3
       self.params['tol'] = 1e-8
       self.params['lte_tries'] = 10
+      self.params['newton_atol'] = 1e-7
+      self.params['newton_rtol'] = 1e-11
+      self.params['newton_max_iters'] = 15
       
     
     ### Create some attributes
@@ -228,6 +238,28 @@ class BDF(object):
     solve(self.F2 == 0, self.U, self.model.d_bcs, J = self.J2, solver_parameters = self.model.newton_params)
     # Return true if it converges
     return True
+    
+    
+  # Based on past values of the solution we can try to predict what the solution
+  # and its derivative will be at t+h
+    
+
+  # Special Newton solver 
+  def newton_solve(self, h):
+    # We assume here that shift has been correctly for the method order
+    
+    i = 0
+    
+    # Convergence params
+    atol = self.params['newton_atol']
+    rtol = self.params['newton_rtol']
+    max_iters = self.prams['newton_max_iters']
+    a_err = 2.0*atol    
+    r_err = 2.0*rtol
+    
+    while i < max_iters and a_err > atol and r_err > rtol :
+      pass
+      
   
     
     

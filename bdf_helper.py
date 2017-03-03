@@ -26,13 +26,14 @@ class BDF_Helper(object):
   times = [t0, ..., tn]
   t : Time to evaluate interpolating polynomial
   
-  Suppose that p is the interpolating polynomial passing through 
+  Suppose that p is the interpolating "predictor" polynomial passing through 
   (t0, y0), ... , (tk, yk). p(t) can be exrpessed as a linear combination
   p(t) = c10*y0 + ... + ck*yk. This function returns the coefficients ci. 
   """
-  def get_interp_coefs_at_t(self, times, t):
-    
-     for i in range(len(times)):
+  def get_y_p_coefs_at_t(self, times, t):
+    coefs = zeros(len(times))
+     
+    for i in range(len(times)):
       n_i = (t - times)
       n_i[i] = 1.0
 
@@ -40,13 +41,31 @@ class BDF_Helper(object):
       d_i[i] = 1.0
         
       coefs[i] = prod(n_i / d_i)
+      
+    return coefs
+    
+    
+  """
+  times = [t0, ..., tn]
+  t : Time to evaluate interpolating polynomial
+  
+  Suppose that p is the interpolating "predictor" polynomial passing through 
+  (t0, y0), ... , (tk, yk). p(t) can be exrpessed as a linear combination
+  p(t) = c10*y0 + ... + ck*yk. This function returns the coefficients ci. 
+  """
+  def get_y_prime_p_coefs_at_t(self, times, t):
+    coefs = zeros(len(times))
+    
+    
+     
+    print times
     
   
   # Suppose p(t) is the interpolating polynomial passing through 
   # (t0, y0) ... (t_(k-1), y_(k-1) p evaluated at t can be expressed as a 
   # linear combination a0*y0 + ... + a_(k-1)*y_(k-1).This function returns 
   # the coefficients ai
-  def get_pred_coefs_at_t(self, k, times, t):
+  """ def get_pred_coefs_at_t(self, k, times, t):
     coefs = zeros(6)
     
     for i in range(k):
@@ -58,7 +77,7 @@ class BDF_Helper(object):
         
       coefs[i] = prod(n_i / d_i)
     
-    return coefs
+    return coefs"""
     
   """ 
   -k is degree
@@ -117,11 +136,37 @@ class BDF_Helper(object):
       coefs += self.get_dd_n(i, times) * self.get_poly_weight_n(i, times)    
     return coefs
     
-  # A divided difference [y0, ... , yn] returns a linear comibination
-  # of y0, ..., yn. This function returns the weights of that linear combination.
-  def get_dd_n(self, n, times):
-    n = min(n, 5)
-    weights = zeros(6)
+    
+  
+  def get_p_coefs_at_t(self, times, t):
+    coefs = self.get_dd_coefs_n(len(times)-1, times)
+
+    for j in range(len(times)-1, 0,-1):
+      coefs = self.get_dd_coefs_n(j-1, times) + (t - times[j-1])*coefs
+      
+    return coefs
+    
+
+  def get_dp_dt_coefs_at_t(self, times, t):
+    coefs_p = self.get_dd_coefs_n(len(times)-1, times)
+    coefs_pp = zeros(len(times))
+    
+    for j in range(len(times)-1, 0,-1):
+      coefs_pp = coefs_p + (t - times[j-1])*coefs_pp      
+      coefs_p = self.get_dd_coefs_n(j-1, times) + (t - times[j-1])*coefs_p
+      
+    return coefs_pp
+    
+  
+  
+      
+  """ 
+  A divided difference [y0, ... , yn] returns a linear comibination
+  of y0, ..., yn. This function returns the weights of that linear combination.
+  """
+  def get_dd_coefs_n(self, n, times):
+    n = min(n, len(times))
+    weights = zeros(len(times))
     
     for i in range(n+1):
       wi = (times[i] - times[:n+1])
@@ -160,18 +205,26 @@ class BDF_Helper(object):
       
 
 bdf_helper = BDF_Helper()
-#bdf_helper.get_coefs(3, array([6.0, 5.5, 5.0, 4.5, 2.0, 1.0]), 0.5)
+#print bdf_helper.get_y_prime_p_coefs_at_t(array([6.0, 5.0, 4.0]), 7.0)
+times = array([6.0, 5.0, 4.0, 3.0])
+print bdf_helper.get_p_coefs_at_t(times, 6.3)
+print bdf_helper.get_dp_dt_coefs_at_t(times, 6.3)
 
-"""from pylab import *
 
-ys = array([1.0, 2.0, 0.5, 3.0, 0.0, 0.0])
-times = array([5.0, 4.0, 3.0, 2.0, 1.0, 0.0])
+from pylab import *
 
-ts = linspace(0.0, 6.0, 100)
+ys = array([5.0, 1.0, 7.0, 0.5])
+times = array([6.0, 5.0, 4.0, 3.0])
+
+ts = linspace(2.5, 6.0, 100)
 ps = []
+pps = []
 for t in ts:
-  ps.append(dot(bdf_helper.get_pred_coefs_at_t(1, times, t), ys))
+  ps.append(dot(bdf_helper.get_y_p_coefs_at_t(times, t), ys))
+  pps.append(dot(bdf_helper.get_dp_dt_coefs_at_t(times, t), ys))
   
 plot(ts, ps)
+plot(ts, pps)
 plot(times, ys, 'ko-')
-show()"""
+xlim([ts.min(), ts.max()])
+show()
