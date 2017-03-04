@@ -24,35 +24,6 @@ class NewtonPoly(object):
                     [ 0.,  0.,  3.,  0.,  0.,  0.],
                     [ 0.,  0.,  0.,  4.,  0.,  0.],
                     [ 0.,  0.,  0.,  0.,  5.,  0.]])
-    
-  
-  """
-  If p is the Newton polynomial passing through y0, ... yk at the given times
-  t0 ... tk then we can evaluate p(t) as a linear combination 
-  c0*y0 + ... + ck*yk. This function returns the coefficients ci. 
-  """
-  def get_p_coefs_at_t(self, times, t):
-    coefs = self.get_dd_coefs_n(len(times)-1, times)
-
-    for j in range(len(times)-1, 0,-1):
-      coefs = self.get_dd_coefs_n(j-1, times) + (t - times[j-1])*coefs
-      
-    return coefs
-    
-  """
-  If p is the Newton polynomial passing through y0, ... yk at the given times
-  t0 ... tk then we can evaluate p'(t) as a linear combination 
-  c0*y0 + ... + ck*yk. This function returns the coefficients ci. 
-  """
-  def get_dp_dt_coefs_at_t(self, times, t):
-    coefs_p = self.get_dd_coefs_n(len(times)-1, times)
-    coefs_pp = zeros(len(times))
-    
-    for j in range(len(times)-1, 0,-1):
-      coefs_pp = coefs_p + (t - times[j-1])*coefs_pp      
-      coefs_p = self.get_dd_coefs_n(j-1, times) + (t - times[j-1])*coefs_p
-      
-    return coefs_pp
       
   """ 
   A divided difference [y0, ... , yn] returns a linear comibination
@@ -98,26 +69,28 @@ class NewtonPoly(object):
   
     
       
-
-bdf_helper = NewtonPoly()
-times = array([6.0, 5.0, 4.0, 3.0, 2.0, 1.0])
-
-bdf_helper.get_dpk_dt_coefs_at_t(0, times, 3.5)
-quit()
 from pylab import *
-
-ys = array([5.0, 1.0, 7.0, 0.5])
+bdf_helper = NewtonPoly()
 
 
 ts = linspace(2.5, 6.0, 100)
-ps = []
-pps = []
+times = array([6.0, 5.0, 4.0, 3.0, 0.5])
+ys = array([5.0, 1.0, 7.0, -1., 5.0])
+
+
+
+p0 = []
+p1 = []
+p2 = []
 for t in ts:
-  ps.append(dot(bdf_helper.get_p_coefs_at_t(times, t), ys))
-  pps.append(dot(bdf_helper.get_dp_dt_coefs_at_t(times, t), ys))
+  p0.append(dot(bdf_helper.get_dpk_dt_coefs_at_t(0, times, t), ys))
+  p1.append(dot(bdf_helper.get_dpk_dt_coefs_at_t(1, times, t), ys))
+  p2.append(dot(bdf_helper.get_dpk_dt_coefs_at_t(2, times, t), ys))
   
-plot(ts, ps)
-plot(ts, pps)
+plot(ts, 0.0*ts, 'k')
+plot(ts, p0)
+plot(ts, p1)
+plot(ts, p2)
 plot(times, ys, 'ko-')
 xlim([ts.min(), ts.max()])
 show()

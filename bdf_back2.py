@@ -86,138 +86,8 @@ class BDF(object):
     self.bootstrapped = False
     # This function will store LTE error 
     self.lte_func = Function(V)
-      
-    
-  # Take a step with BDFk
-  def step_dk(self, k, h):
-
-    success = False
-    tries = 0 
-    max_tries = self.params['max_tries']
-    
-    # Get the BDFk solver
-    solver = self.solvers[k]
-    # In order to compute coefficients for degree k, bdf_helper needs the times
-    # of previous solutions as well as the time we want to advance to. Here
-    # we're proposing to advance to time t0 + h with previous times t0, t1, ...
-    times = np.zeros(6)
-    times[1:] = self.ts[0:5]
-    
-    # Try different time steps until the solver converges. If the solver doesn't 
-    # converge after halving the time step some number of times, then just accept the solution.
-    while not success and tries < max_tries:
-      times[0] = self.ts[0] + h
-      
-      # Use our friendly bdf helper to compute some coefficients!
-      self.bdf_helper.ts = times
-      cofs_k = self.bdf_helper.compute_coefficients(k)[:(k+1)]
-
-      # Now we need to update the coefficients in the BDFk form
-      for i in range(k+1):
-        self.cofs[k][i].assign(cofs_k[i])
-      
-      # Now that the coefficients have been set, solve
-      (i, converged) = solver.solve()
-      success = converged 
-      tries += 1
-
-      if success:
-        break
-      else:
-        # If solver didn't converge cut time step in half
-        h /= 2.0
-    
-    if tries == max_tries and self.MPI_rank == 0:
-      print "Solver did not converge after " + str(tries) + " tries. Accepting solution as is."
-      
-    # Return the time step we took
-    return h, times
-    
-  
-  # Try steps with BDFk of different sizes until the LTE is below the threshold
-  def step_lte_dk(self, k, h):    
-    for i in range(self.params['lte_tries']):
-      # Try a step h 
-      h, times = self.step_dk(k, h)
-      # Check LTE 
-      lte_norm = self.compute_lte(k, times)
-      # Error tolerance
-      etol = self.params['tol']
-      print etol
-      # Propose a new time step based on error
-      alpha = (((0.9) * etol) / lte_norm)**(1.0 / (k + 1.0))
-      hnew = alpha * h
-      
-      print (0.9 * etol)
-      print lte_norm
-      print alpha
-      print "lte_norm", lte_norm
-      print "hnew", hnew
-      
-      quit()
-      
-      # Check if we should accept the step
-      if lte_norm * dt <= self.params['tol']:
-        self.accept_step(h)
-        return hnew
-      else :
-        # If error is too much try a smaller time step
-        h = hnew
-        
-    print "Couldn't reduce LTE error sufficiently in " + self.params['lte_tries'] + " tries. Accepting solution as is."
-    quit()
-  
-  
-  # Initialize the ODE solver
-  def bootstrap(self, h):
-    
-    for k in range(1,4):
-      
-      # Initially take two steps with backward Euler so we can compute LTE
-      if k == 1:
-        h, times = self.step_dk(k, h)
-        self.accept_step(h)
-        
-        self.step_lte_dk(k, h)
-        
-      else : 
-        # Take a step with a method of degree k
-        pass
-        
-      quit()
-      # Compute a local truncation error
-      self.compute_lte(k, times)
-        
-
-  # Accept a time step from t0 to t0 + h     
-  def accept_step(self, h):
-    # Update times
-    self.ts = np.roll(self.ts, 1)
-    self.ts[0] = self.ts[1] + h
-    # Update solutions 
-    for i in range(5,0,-1):
-      self.Ys[i].assign(self.Ys[i-1])
-      
-
-  # Compute the local truncation error of order form BDFk. LTE is a linear combination
-  # of Y0, ... , Y5
-  def compute_lte(self, k, times):
-    print times
-    self.bdf_helper.ts = times
-    # Compute coefficients
-    lte_cofs = self.bdf_helper.compute_lte_coefficients(k)
-    # Compute LTE
-    lte = lte_cofs[0] * self.Ys[0].vector().array()
-    for i in range(1, k + 2):
-      lte += lte_cofs[i] * self.Ys[i].vector().array()
-
-    # Pute LTE in a function      
-    self.lte_func.vector().set_local(lte)
-    self.lte_func.vector().apply("insert")
-    
-    # compute norm
-    return self.lte_func.vector().norm('linf')
-    
+    # Dirichlet bcs
+    self.bcs = bcs
     
   
   def step_d1(self, h):
@@ -246,7 +116,7 @@ class BDF(object):
 
   # Special Newton solver 
   def newton_solve(self, h):
-    # We assume here that shift has been correctly for the method order
+    # We assume here that shift has been correctly set for the method order
     
     i = 0
     
@@ -258,7 +128,7 @@ class BDF(object):
     r_err = 2.0*rtol
     
     while i < max_iters and a_err > atol and r_err > rtol :
-      pass
+      
       
   
     
