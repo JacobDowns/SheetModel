@@ -69,7 +69,7 @@ class PhiSolver(object):
     theta = TestFunction(model.V_cg)
     # Variational form for the PDE
     F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
-    # Get the Jacobian
+    # Jacobian form
     dphi = TrialFunction(model.V_cg)
     J = derivative(F, phi, dphi) 
     # Constant in front of time derivative
