@@ -43,8 +43,6 @@ class PhiSolver(object):
 
     ### Set up the PDE for the potential 
 
-    # Unknown 
-    #phi.assign(phi_0)
     # Expression for effective pressure in terms of potential
     N = phi_0 - phi
     # Flux vector
@@ -72,8 +70,8 @@ class PhiSolver(object):
                                           "maximum_iterations": 250,
                                           "report": True,
                                           "error_on_nonconvergence": False, 
-                                          "relative_tolerance" : 1e-10,
-                                          "absolute_tolerance" : 1e-6}}
+                                          "relative_tolerance" : 1e-12,
+                                          "absolute_tolerance" : 1e-9}}
                       
     # Set object variables                  
     self.phi_solver = NonlinearVariationalSolver(phi_problem)

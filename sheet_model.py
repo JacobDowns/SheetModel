@@ -86,8 +86,8 @@ class SheetModel(Model):
     else :
       prm = NonlinearVariationalSolver.default_parameters()
       prm['newton_solver']['relaxation_parameter'] = 1.0
-      prm['newton_solver']['relative_tolerance'] = 1e-9
-      prm['newton_solver']['absolute_tolerance'] = 1e-6
+      prm['newton_solver']['relative_tolerance'] = 1e-12
+      prm['newton_solver']['absolute_tolerance'] = 1e-9
       prm['newton_solver']['error_on_nonconvergence'] = False
       prm['newton_solver']['maximum_iterations'] = 30
       
