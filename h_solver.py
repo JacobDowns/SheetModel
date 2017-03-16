@@ -85,9 +85,12 @@ class HSolver():
     self.ode_solver.setTime(0.0)
     self.ode_solver.setDuration(dt)
     self.ode_solver.solve(self.h_v)
+    
     print('steps %d (%d rejected)'
           % (self.ode_solver.getStepNumber(), self.ode_solver.getStepRejections()))
-    # Apply changes to vector
+    
+    # Apply changes to vector for h
+    self.model.h.vector().set_local(self.h_v.getArray())
     self.model.h.vector().apply("insert")
   
  
