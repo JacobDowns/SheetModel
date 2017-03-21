@@ -37,7 +37,7 @@ class PhiSolver(object):
     alpha = model.pcs['alpha']
     delta = model.pcs['delta']
     # Regularization parameter
-    phi_reg = 1e-15
+    phi_reg = 1e-16
 
     
 
@@ -67,10 +67,11 @@ class PhiSolver(object):
     
     snes_solver_parameters = {"nonlinear_solver": "snes",
                           "snes_solver": {"linear_solver": "lu",
-                                          "maximum_iterations": 250,
+                                          "maximum_iterations": 100,
+                                          'line_search': 'basic',
                                           "report": True,
                                           "error_on_nonconvergence": False, 
-                                          "relative_tolerance" : 1e-12,
+                                          "relative_tolerance" : 1e-11,
                                           "absolute_tolerance" : 1e-7}}
                       
     # Set object variables                  

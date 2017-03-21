@@ -51,18 +51,6 @@ class SheetModel(Model):
     self.init_model()
     
     
-    ### Derive variables we'll need later and setup boundary conditions
-    
-    # Potential at 0 pressure
-    self.phi_m = project(pcs['rho_w'] * pcs['g'] * self.B, self.V_cg)
-    # Ice overburden pressure
-    self.p_i = project(pcs['rho_i'] * pcs['g'] * self.H, self.V_cg)
-    # Potential at overburden pressure
-    self.phi_0 = project(self.phi_m + self.p_i, self.V_cg)
-    # Update phi
-    self.update_phi()
-    
-    
     ### Setup boundary conditions
     
     # If there are boundary conditions specified, use them. Otherwise apply
@@ -207,6 +195,16 @@ class SheetModel(Model):
       self.input_file.read(self.k, "k_0")
       # Use the default constant bump height
       self.h_r.assign(interpolate(Constant(self.pcs['h_r']), self.V_cg))
+      
+       ### Derive variables we'll need later and setup boundary conditions
+    
+      # Potential at 0 pressure
+      self.phi_m = project(pcs['rho_w'] * pcs['g'] * self.B, self.V_cg)
+      # Ice overburden pressure
+      self.p_i = project(pcs['rho_i'] * pcs['g'] * self.H, self.V_cg)
+      # Potential at overburden pressure
+      self.phi_0 = project(self.phi_m + self.p_i, self.V_cg)
+    
       # If there is an initial phi, use it for initial guess
       
       has_phi_0 = False
@@ -218,6 +216,12 @@ class SheetModel(Model):
       
       if has_phi_0:
         self.input_file.read(self.phi, "phi_0")
+      else:
+        # If an initial potential isn't specified, initialize to overburden
+        self.phi.assign(self.phi_0)
+        
+      # Update phi
+      self.update_phi()
       
       
     except Exception as e:
