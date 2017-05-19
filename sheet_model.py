@@ -2,8 +2,8 @@ from dolfin import *
 from dolfin import MPI, mpi_comm_world
 from constants import *
 from model import *
-from phi_solver import *
-from h_solver import *
+from solver import *
+import sys
 
 
 """ Wrapper class for Schoof's constrained sheet model."""
@@ -15,18 +15,32 @@ class SheetModel(Model):
 
 
     ### Setup mixed function space for (phi, h)
+
     P1 = FiniteElement('P', 'triangle', 1)
+    # Linear Lagrange element
     element = MixedElement([P1, P1])
-    self.V_cg = FunctionSpace(mesh, P1)
-    self.V = FunctionSpace(mesh, element)
+    # CG function space
+    self.V_cg = FunctionSpace(self.mesh, P1)
+    # Mixed function space CG x CG
+    self.V = FunctionSpace(self.mesh, element)
+    # Function assigner for assigning from the mixed space
+    self.assign_from_mixed = FunctionAssigner([self.V_cg, self.V_cg], self.V)
+    # Function assigner for assigning to the mixed space
+    self.assign_to_mixed = FunctionAssigner(self.V, [self.V_cg, self.V_cg])
 
 
     ### Initialize model variables
 
     # Combined (phi, h) unknown
-    self.U = Function(V)
-    # Cavity height variable
-    self.h = Function(self.V_cg)
+    self.U = Function(self.V)
+    # Hydraulic potential 
+    self.phi = self.U.sub(0)
+    self.phi_cg = Function(self.V_cg)
+    # Cavity height
+    self.h = self.U.sub(1)
+    self.h_cg = Function(self.V_cg)
+    # Cavity height at previous time step
+    self.h_prev = Function(self.V_cg)
     # Bed geometry
     self.B = Function(self.V_cg)
     # Ice thickness
@@ -45,8 +59,6 @@ class SheetModel(Model):
     self.phi_min = Function(self.V_cg)
     # Maximum potential constraint for optimization
     self.phi_max = Function(self.V_cg)
-    # Hydraulic Potential
-    self.phi = Function(self.V_cg)
     # Effective pressure
     self.N = Function(self.V_cg)
     # Water pressure
@@ -56,7 +68,7 @@ class SheetModel(Model):
     # Function for visualizing flux
     self.V_cg_vec = VectorFunctionSpace(self.mesh, "CG", 1)
     self.q_func = Function(self.V_cg_vec)
-    
+    # Read inputs from file
     self.init_model()
     
     
@@ -65,15 +77,15 @@ class SheetModel(Model):
     # If there are boundary conditions specified, use them. Otherwise apply
     # default bc of 0 pressure on the margin
     if 'point_bc' in self.model_inputs:
-      self.d_bcs = [DirichletBC(self.V_cg, self.phi_m, self.model_inputs['point_bc'], method="pointwise")]
+      self.d_bcs = [DirichletBC(self.V.sub(0), self.phi_m, self.model_inputs['point_bc'], method="pointwise")]
     elif 'd_bcs' in self.model_inputs:
       # Dirichlet boundary conditions
       self.d_bcs = self.model_inputs['d_bcs']    
     else :
       # By default, a marker 0f 1 denotes the margin
-      self.d_bcs = [DirichletBC(self.V_cg, self.phi_m, self.boundaries, 1)]
+      self.d_bcs = [DirichletBC(self.V.sub(0), self.phi_m, self.boundaries, 1)]
       
-      
+
     ### PDE solver parameters
       
     # If the Newton parameters are specified use them. Otherwise use some
@@ -91,7 +103,7 @@ class SheetModel(Model):
       self.newton_params = prm
       
       
-    ### Setup some stuff necessary for the bfgs optimization   
+    ### Constraints on pressure
       
     # If the minimum potential is specified, then use it. Normally one should 
     # probably not do this
@@ -106,14 +118,6 @@ class SheetModel(Model):
       self.phi_max.assign(self.model_inputs['phi_max'])
       
       
-
-    ### Create objects that solve the model equations
-    
-    # Potential solver
-    self.phi_solver = PhiSolver(self)
-    self.h_solver = HSolver(self)
-      
-
     ### Output files
     
     self.h_out = File(self.out_dir + "h.pvd")
@@ -124,6 +128,14 @@ class SheetModel(Model):
     self.k_out = File(self.out_dir + "k.pvd")
     self.q_out = File(self.out_dir + "q.pvd")
     self.N_out = File(self.out_dir + "N.pvd")
+      
+      
+
+    ### Create objects that solve the model equations
+    
+    # Potential solver
+    self.solver = Solver(self)
+    
     
     
   # Look at the input file to check if we're starting or continuing a simulation
@@ -155,7 +167,8 @@ class SheetModel(Model):
     # Initial time is 0
     self.t = 0.0        
     
-    
+  
+  #TODO : Fix this
   # Initialize model using the state at the end of a previous simulation
   def continue_simulation(self):
      self.load_inputs()
@@ -172,22 +185,21 @@ class SheetModel(Model):
     
   # Steps phi and h forward by dt
   def step(self, dt):
-    self.phi_solver.step()
-    self.h_solver.step(dt)
-    self.t += dt
+    self.solver.step(dt)
     
   
   # Steps phi and h forward by dt, with constraints on phi
   def step_constrained(self, dt):
-    self.phi_solver.step_constrained()
-    self.h_solver.step(dt)
-    self.t += dt
+    pass
     
     
   # Load all model inputs from the input file if they are not specified
   # in the
   def load_inputs(self):
     try :
+      
+      ### Model inputs
+      
       # Bed elevation 
       self.input_file.read(self.B, "B")
       # Ice thickness
@@ -198,14 +210,13 @@ class SheetModel(Model):
       self.input_file.read(self.m, "m_0")
       # Sliding speed
       self.input_file.read(self.u_b, "u_b_0")   
-      # Sheet height
-      self.input_file.read(self.h, "h_0")
       # Conductivity
       self.input_file.read(self.k, "k_0")
       # Use the default constant bump height
       self.h_r.assign(interpolate(Constant(self.pcs['h_r']), self.V_cg))
-      
-       ### Derive variables we'll need later and setup boundary conditions
+
+
+      ### Derive variables we'll need later and setup boundary conditions
     
       # Potential at 0 pressure
       self.phi_m = project(pcs['rho_w'] * pcs['g'] * self.B, self.V_cg)
@@ -213,9 +224,11 @@ class SheetModel(Model):
       self.p_i = project(pcs['rho_i'] * pcs['g'] * self.H, self.V_cg)
       # Potential at overburden pressure
       self.phi_0 = project(self.phi_m + self.p_i, self.V_cg)
+
+    
+      ### Assign initial condition 
     
       # If there is an initial phi, use it for initial guess
-      
       has_phi_0 = False
       try :
         self.input_file.attributes("phi_0")
@@ -224,11 +237,17 @@ class SheetModel(Model):
         pass
       
       if has_phi_0:
-        self.input_file.read(self.phi, "phi_0")
+        self.input_file.read(self.phi_cg, "phi_0")
       else:
         # If an initial potential isn't specified, initialize to overburden
-        self.phi.assign(self.phi_0)
+        self.phi_cg.assign(self.phi_0)
         
+        
+      # Sheet height
+      self.input_file.read(self.h_cg, "h_0")    
+      self.input_file.read(self.h_prev, "h_0")
+      # Initialize mixed unknown U
+      self.assign_to_mixed.assign(self.U, [self.phi_cg, self.h_cg])
       # Update phi
       self.update_phi()
       
@@ -242,13 +261,13 @@ class SheetModel(Model):
       
   # Update the effective pressure to reflect current value of phi
   def update_N(self):
-    self.N.vector().set_local(self.phi_0.vector().array() - self.phi.vector().array())
+    self.N.vector().set_local(self.phi_0.vector().array() - self.phi_cg.vector().array())
     self.N.vector().apply("insert")
     
   
   # Update the water pressure to reflect current value of phi
   def update_pw(self):
-    self.p_w.vector().set_local(self.phi.vector().array() - self.phi_m.vector().array())
+    self.p_w.vector().set_local(self.phi_cg.vector().array() - self.phi_m.vector().array())
     self.p_w.vector().apply("insert")
     self.update_pfo()
     
@@ -265,6 +284,11 @@ class SheetModel(Model):
   def update_phi(self):
     self.update_N()
     self.update_pw()
+    
+  
+  # Update all fields derived from U
+  def update_U(self):
+    self.assign_from_mixed([self.phi_cg, self.h_cg], self.U)
     
   
   # Write fields to pvd files for visualization
@@ -301,7 +325,7 @@ class SheetModel(Model):
     self.output_file.write(self.h, "h", self.t)
 
     if 'phi' in to_write:
-      self.output_file.write(self.phi, "phi", self.t)
+      self.output_file.write(self.phi_cg, "phi", self.t)
     if 'u_b' in to_write:
       self.output_file.write(self.u_b, "u_b", self.t)
     if 'k' in to_write:
@@ -352,9 +376,8 @@ class SheetModel(Model):
     output_file.write(self.boundaries, "boundaries")
     output_file.write(self.k, "k_0")
     output_file.write(self.N, 'N_0')
-    output_file.write(self.phi, 'phi_0')
+    output_file.write(self.phi_cg, 'phi_0')
     output_file.write(self.pfo, 'pfo_0')
-    
     # Compute magnitude of flux
     q_mag = project(sqrt(dot(self.phi_solver.q, self.phi_solver.q)), self.V_cg)
     output_file.write(q_mag, 'q_0')
