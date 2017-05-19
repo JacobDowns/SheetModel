@@ -13,8 +13,12 @@ class Solver(object):
     self.model = model
     # Combined (phi, h) unknown
     U = U
+    # CG Function space
+    V_cg = self.model.V_cg
     # Hydraulic potential and sheet height 
     phi, h = split(U)
+    # Time derivative of h
+    h_prev = self.model.h_prev
     # Get melt rate
     m = model.m
     # Basal sliding speed
@@ -53,29 +57,18 @@ class Solver(object):
     
     # Test function
     theta1, theta2 = TestFunction(model.V_cg)
-    # Variational form for the PDE
-    F = -dot(grad(theta), q) * dx + (w - v - m) * theta * dx
+    # PDE part of F
+    F = -dot(grad(theta1), q)*dx + (w - v - m)*theta1*dx
+    # Time step    
+    dt = Constant(1.0)
+    # ODE part of F
+    F += ((h - h_prev)/dt - w + v)*theta2*dP
     # Get the Jacobian
     dphi = TrialFunction(model.V_cg)
     J = derivative(F, phi, dphi) 
 
-    
-    # Setup the nonlinear problem for the hydraulic potential
-    phi_problem = NonlinearVariationalProblem(F, phi, model.d_bcs, J)
-    phi_problem.set_bounds(phi_min, phi_max)
-    
-    snes_solver_parameters = {"nonlinear_solver": "snes",
-                          "snes_solver": {"linear_solver": "lu",
-                                          "maximum_iterations": 100,
-                                          'line_search': 'basic',
-                                          "report": True,
-                                          "error_on_nonconvergence": False, 
-                                          "relative_tolerance" : 1e-11,
-                                          "absolute_tolerance" : 1e-7}}
                       
     # Set object variables                  
-    self.phi_solver = NonlinearVariationalSolver(phi_problem)
-    self.phi_solver.parameters.update(snes_solver_parameters)
     self.F = F
     self.J = J
     self.phi = phi
