@@ -186,6 +186,7 @@ class SheetModel(Model):
   # Steps phi and h forward by dt
   def step(self, dt):
     self.solver.step(dt)
+    self.t += dt
     
   
   # Steps phi and h forward by dt, with constraints on phi
@@ -288,7 +289,7 @@ class SheetModel(Model):
   
   # Update all fields derived from U
   def update_U(self):
-    self.assign_from_mixed([self.phi_cg, self.h_cg], self.U)
+    self.assign_from_mixed.assign([self.phi_cg, self.h_cg], self.U)
     
   
   # Write fields to pvd files for visualization

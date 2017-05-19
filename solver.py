@@ -80,6 +80,7 @@ class Solver(object):
     self.model = model
     self.q = q
     self.dt = dt
+    self.h_prev = h_prev
     
     
   # Step PDE for phi forward by dt. No constraints.
