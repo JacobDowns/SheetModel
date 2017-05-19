@@ -13,9 +13,18 @@ class SheetModel(Model):
   def __init__(self, model_inputs):
     Model.__init__(self, model_inputs)
 
+
+    ### Setup mixed function space for (phi, h)
+    P1 = FiniteElement('P', 'triangle', 1)
+    element = MixedElement([P1, P1])
+    self.V_cg = FunctionSpace(mesh, P1)
+    self.V = FunctionSpace(mesh, element)
+
+
     ### Initialize model variables
-  
-    self.V_cg = FunctionSpace(self.mesh, "CG", 1)
+
+    # Combined (phi, h) unknown
+    self.U = Function(V)
     # Cavity height variable
     self.h = Function(self.V_cg)
     # Bed geometry
