@@ -72,7 +72,7 @@ class PhiSolver(object):
                                           "report": True,
                                           "error_on_nonconvergence": False, 
                                           "relative_tolerance" : 1e-11,
-                                          "absolute_tolerance" : 1e-7}}
+                                          "absolute_tolerance" : 1e-9}}
                       
     # Set object variables                  
     self.phi_solver = NonlinearVariationalSolver(phi_problem)

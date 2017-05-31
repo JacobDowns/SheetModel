@@ -21,6 +21,8 @@ class Solver(object):
     
     ### Get all the variables, inputs, and constants we need from the model
     
+    # Mixed function space
+    V = model.V
     # Combined (phi, h) unknown
     U = model.U
     # CG Function space
@@ -57,7 +59,7 @@ class Solver(object):
     phi_reg = 1e-16
     # Apply boundary conditions for pressure
     [bc.apply(U.vector()) for bc in model.d_bcs]
-
+    # Vector of error tolerances    
 
     # Expression for effective pressure in terms of potential
     N = phi_0 - phi
@@ -92,6 +94,24 @@ class Solver(object):
     
 
     ### Setup time stepper 
+
+    # Create PETSc vectors of atols and rtols
+    dif_atol = 1e-6
+    alg_atol = 1e16
+    dif_rtol = 1e-8
+    alg_rtol = 1e16
+    
+    dif_atol_cg = project(Constant(dif_atol), V_cg)
+    dif_rtol_cg = project(Constant(dif_rtol), V_cg)
+    alg_atol_cg = project(Constant(alg_atol), V_cg)
+    alg_rtol_cg = project(Constant(alg_rtol), V_cg)  
+    
+    atol = Function(V)
+    rtol = Function(V)
+    model.assign_to_mixed.assign(atol, [alg_atol_cg, dif_atol_cg])
+    model.assign_to_mixed.assign(rtol, [alg_rtol_cg, dif_rtol_cg])
+    atol_p = as_backend_type(atol.vector()).vec()
+    rtol_p = as_backend_type(rtol.vector()).vec()
     
     # F as a fenics vector
     F_f = assemble(F_form)
@@ -129,6 +149,7 @@ class Solver(object):
         assemble(F_form, tensor = F_f)
         [bc.apply(F_f) for bc in model.d_bcs]
         f.setArray(as_backend_type(F_f).vec().getArray())
+        print ("fmax", f.getArray().max())
         
       
       def evalJacobian(self, ts, t, u, u_dot, a, A, B): 
@@ -142,8 +163,8 @@ class Solver(object):
         assemble(J, tensor = J_f)
         [bc.apply(J_f) for bc in model.d_bcs]
         
-        as_backend_type(J_f).mat().copy(B)
-        B.assemble()
+        print np.max(as_backend_type(J_f).mat().getValuesCSR()[2] - B.getValuesCSR()[2])
+        print
         
         if A != B: 
           A.assemble()
@@ -153,18 +174,18 @@ class Solver(object):
     ts = PETSc.TS().create(comm=comm)
     ts.setProblemType(ts.ProblemType.NONLINEAR)
     ts.setEquationType(ts.EquationType.IMPLICIT)
-    ts.setType(ts.Type.BDF)
+    ts.setType(ts.Type.ROSW)
     ts.setIFunction(ode.evalFunction, F_p)
     ts.setIJacobian(ode.evalJacobian, J_p)
     ts.setTime(0.0)
     ts.setInitialTimeStep(0.0, 60.0)   
-    ts.setTolerances(atol=1e-5, rtol=1e-8)
+    ts.setTolerances(vatol = atol_p, vrtol = rtol_p)
     ts.setMaxSteps(500)
     ts.setExactFinalTime(ts.ExactFinalTimeOption.MATCHSTEP)
     ts.setMaxSNESFailures(-1)
     
     snes = ts.getSNES()             # Nonlinear solver
-    snes.setTolerances(rtol = 1e-9, atol=5e-6, max_it=20)   # Stop nonlinear solve after 10 iterations (TS will retry with shorter step)
+    snes.setTolerances(rtol = 1e-4, atol=1e-4, max_it=20)   # Stop nonlinear solve after 10 iterations (TS will retry with shorter step)
     ksp = snes.getKSP()             # Linear solver
     
                       
