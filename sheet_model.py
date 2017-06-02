@@ -92,7 +92,7 @@ class SheetModel(Model):
     
     # If the maximum potential is specified, then use it. Normally one should 
     # probably not do this
-    self.phi_max.assign(self.phi_0)
+    self.phi_max.assign(project(1.1*self.phi_0, self.V_cg))
     if 'phi_max' in self.model_inputs:
       self.phi_max.assign(self.model_inputs['phi_max'])
       
