@@ -90,7 +90,10 @@ class HSolver():
           % (self.ode_solver.getStepNumber(), self.ode_solver.getStepRejections()))
     
     # Apply changes to vector for h
-    self.model.h.vector().set_local(self.h_v.getArray())
+    hs = self.h_v.getArray()
+    indexes_under = hs < 0.0
+    hs[indexes_under] = 0.0
+    self.model.h.vector().set_local(hs)
     self.model.h.vector().apply("insert")
   
  
